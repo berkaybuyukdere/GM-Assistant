@@ -471,3 +471,79 @@ struct GMCard<Content: View>: View {
         }
     }
 }
+
+// MARK: - Collapsible panel
+
+/// A panel whose header is a switch. Used for content that is reassuring to
+/// have but noisy to always show — the submissions log grows with every
+/// photo set, and once it is long it pushes the actions the customer came
+/// for off the screen.
+struct GMCollapsiblePanel<Content: View, Accessory: View>: View {
+    private let title: LocalizedStringKey
+    @Binding private var isExpanded: Bool
+    private let content: Content
+    private let accessory: Accessory
+    private var padding: CGFloat
+    private var spacing: CGFloat
+
+    init(
+        _ title: LocalizedStringKey,
+        isExpanded: Binding<Bool>,
+        padding: CGFloat = GMTheme.panelPadding,
+        spacing: CGFloat = 12,
+        @ViewBuilder content: () -> Content,
+        @ViewBuilder accessory: () -> Accessory = { EmptyView() }
+    ) {
+        self.title = title
+        self._isExpanded = isExpanded
+        self.padding = padding
+        self.spacing = spacing
+        self.content = content()
+        self.accessory = accessory()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                Haptics.toggle()
+                withAnimation(.spring(response: 0.34, dampingFraction: 0.86)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 9) {
+                    Capsule()
+                        .fill(GMTheme.accent)
+                        .frame(width: 3, height: 12)
+                    Text(title).gmSectionLabel()
+                    Spacer(minLength: 8)
+                    accessory
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(GMTheme.textMuted)
+                        .rotationEffect(.degrees(isExpanded ? 0 : -90))
+                }
+                .padding(.horizontal, padding)
+                .padding(.vertical, 14)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(isExpanded ? [] : .isButton)
+
+            if isExpanded {
+                Rectangle()
+                    .fill(GMTheme.divider)
+                    .frame(height: GMTheme.hairline)
+
+                VStack(alignment: .leading, spacing: spacing) {
+                    content
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(padding)
+            }
+        }
+        .background(GMTheme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
+        .gmBorder()
+        .shadow(color: GMTheme.panelShadow, radius: 8, x: 0, y: 2)
+    }
+}

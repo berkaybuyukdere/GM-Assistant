@@ -40,6 +40,10 @@ struct ReservationHomeView: View {
     /// or the meeting point drifts outside a padded copy of it.
     @State private var lastFitRegion: MKCoordinateRegion?
     @State private var showShuttleFullScreen = false
+    /// The submissions log grows with every photo set; collapsed by default
+    /// so it never pushes the actions the customer came for off the screen.
+    @State private var submissionsExpanded = false
+    @State private var confirmEndSession = false
 
     private var recordService: CustomerRecordService? { appState.recordService }
 
@@ -77,8 +81,8 @@ struct ReservationHomeView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        Haptics.light()
-                        appState.endSession()
+                        Haptics.tap()
+                        confirmEndSession = true
                     } label: {
                         Text("change_reservation")
                             .font(GMTheme.ui(13.5, .medium))
@@ -88,6 +92,20 @@ struct ReservationHomeView: View {
             }
             .sheet(item: $photoSheetType) { type in
                 PhotoCaptureView(reservation: reservation, type: type)
+            }
+            // Leaving throws the customer back to the code entry screen and
+            // drops the live listeners, so a stray tap on a toolbar button
+            // should not be enough to do it.
+            .confirmationDialog(
+                "change_reservation_confirm",
+                isPresented: $confirmEndSession,
+                titleVisibility: .visible
+            ) {
+                Button("change_reservation", role: .destructive) {
+                    Haptics.warning()
+                    appState.endSession()
+                }
+                Button("cancel", role: .cancel) {}
             }
             .onAppear { syncShuttleTracking() }
             .onDisappear {
@@ -198,7 +216,7 @@ struct ReservationHomeView: View {
                     .foregroundStyle(GMTheme.textSecondary)
                 Spacer(minLength: 8)
                 Button {
-                    Haptics.light()
+                    Haptics.tap()
                     recordService?.retryListener()
                 } label: {
                     Text("retry")
@@ -339,7 +357,7 @@ struct ReservationHomeView: View {
         emphasized: Bool = false
     ) -> some View {
         Button {
-            Haptics.light()
+            Haptics.tap()
             photoSheetType = type
         } label: {
             HStack(spacing: 12) {
@@ -381,31 +399,30 @@ struct ReservationHomeView: View {
                 )
                 .animation(.easeOut(duration: 0.15), value: noteFieldFocused)
 
-            HStack(spacing: 10) {
-                if noteSent {
-                    Label("note_sent", systemImage: "checkmark.circle.fill")
-                        .font(GMTheme.ui(12.5, .medium))
-                        .foregroundStyle(GMTheme.accentText)
-                        .transition(.opacity)
-                } else if noteError {
-                    Label("error_unknown", systemImage: "exclamationmark.circle.fill")
-                        .font(GMTheme.ui(12.5, .medium))
-                        .foregroundStyle(GMTheme.danger)
-                }
-                Spacer(minLength: 0)
-                Button {
-                    sendNote()
-                } label: {
-                    if noteSaving {
-                        ProgressView().tint(GMTheme.onAccent)
-                    } else {
-                        Label("send_note", systemImage: "paperplane.fill")
-                    }
-                }
-                .buttonStyle(GMPrimaryButtonStyle(height: 42))
-                .frame(width: 150)
-                .disabled(noteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || noteSaving)
+            if noteSent {
+                Label("note_sent", systemImage: "checkmark.circle.fill")
+                    .font(GMTheme.ui(12.5, .medium))
+                    .foregroundStyle(GMTheme.accentText)
+                    .transition(.opacity)
+            } else if noteError {
+                Label("error_unknown", systemImage: "exclamationmark.circle.fill")
+                    .font(GMTheme.ui(12.5, .medium))
+                    .foregroundStyle(GMTheme.danger)
             }
+
+            // Full width, matching every other primary action in the app —
+            // a half-width button beside empty space read as an afterthought.
+            Button {
+                sendNote()
+            } label: {
+                if noteSaving {
+                    ProgressView().tint(GMTheme.onAccent)
+                } else {
+                    Label("send_note", systemImage: "paperplane.fill")
+                }
+            }
+            .buttonStyle(GMPrimaryButtonStyle())
+            .disabled(noteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || noteSaving)
             .animation(.easeOut(duration: 0.2), value: noteSent)
         }
     }
@@ -413,7 +430,7 @@ struct ReservationHomeView: View {
     private func sendNote() {
         let trimmed = noteText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !noteSaving else { return }
-        Haptics.light()
+        Haptics.tap()
         noteFieldFocused = false
         noteSaving = true
         noteError = false
@@ -608,7 +625,7 @@ struct ReservationHomeView: View {
         }
         .contentShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
         .onTapGesture {
-            Haptics.light()
+            Haptics.tap()
             showShuttleFullScreen = true
         }
         .accessibilityAddTraits(.isButton)
@@ -717,7 +734,7 @@ struct ReservationHomeView: View {
         let isSelected = recordService?.shuttleRequested == value
         return Button {
             guard !shuttleSaving else { return }
-            Haptics.light()
+            Haptics.select()
             shuttleSaving = true
             shuttleError = false
             Task {
@@ -763,7 +780,7 @@ struct ReservationHomeView: View {
     private var assistancePanel: some View {
         GMPanel("need_help", spacing: 10) {
             Button {
-                Haptics.light()
+                Haptics.tap()
                 call(number: reservation.roadsidePhone)
             } label: {
                 Label("roadside_assistance", systemImage: "wrench.and.screwdriver.fill")
@@ -772,7 +789,7 @@ struct ReservationHomeView: View {
 
             if let office = reservation.officePhone {
                 Button {
-                    Haptics.light()
+                    Haptics.tap()
                     call(number: office)
                 } label: {
                     Label("call_gm_office", systemImage: "phone.fill")
@@ -794,7 +811,7 @@ struct ReservationHomeView: View {
     private var submissionsPanel: some View {
         Group {
             if let records = recordService?.records, !records.isEmpty {
-                GMPanel("my_submissions", spacing: 0) {
+                GMCollapsiblePanel("my_submissions", isExpanded: $submissionsExpanded, spacing: 0) {
                     ForEach(Array(records.enumerated()), id: \.element.id) { index, record in
                         SubmissionRow(record: record) { startIndex in
                             gallerySession = RemotePhotoGallerySession(
@@ -809,9 +826,14 @@ struct ReservationHomeView: View {
                         }
                     }
                 } accessory: {
-                    Text("sent_to_erp")
-                        .font(GMTheme.ui(12))
+                    Text(verbatim: "\(records.count)")
+                        .font(GMTheme.ui(12.5, .semibold))
+                        .monospacedDigit()
                         .foregroundStyle(GMTheme.accentText)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(GMTheme.accentSoft)
+                        .clipShape(Capsule())
                 }
             }
         }

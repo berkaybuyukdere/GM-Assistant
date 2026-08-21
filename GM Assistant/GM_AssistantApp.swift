@@ -29,6 +29,9 @@ struct GM_AssistantApp: App {
                 // Light is the designed-for case; the palette carries a matching
                 // dark variant, so the app follows the customer's own setting.
                 .task {
+                    // Prepared up front so the first haptic of the session
+                    // lands with the touch instead of a beat after it.
+                    Haptics.warmUp()
                     await appState.bootstrap()
                 }
         }

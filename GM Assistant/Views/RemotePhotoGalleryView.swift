@@ -36,6 +36,7 @@ struct RemotePhotoGalleryView: View {
             .tabViewStyle(.page(indexDisplayMode: session.urls.count > 1 ? .always : .never))
 
             Button {
+                Haptics.tap()
                 dismiss()
             } label: {
                 Image(systemName: "xmark.circle.fill")

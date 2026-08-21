@@ -143,7 +143,7 @@ struct ShuttleFullScreenMapView: View {
 
     private var closeButton: some View {
         Button {
-            Haptics.light()
+            Haptics.tap()
             dismiss()
         } label: {
             Image(systemName: "xmark")

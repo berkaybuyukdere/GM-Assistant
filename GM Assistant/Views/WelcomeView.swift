@@ -24,6 +24,9 @@ struct WelcomeView: View {
     @State private var autoSubmitTask: Task<Void, Never>?
     @State private var didAutoSubmitFor: String = ""
     @State private var promoCopied = false
+    // Partnership strip: entrance, then a slow sweep of light across it.
+    @State private var partnershipIn = false
+    @State private var sweep: CGFloat = -1
 
     private enum Field {
         case res, plate
@@ -93,11 +96,18 @@ struct WelcomeView: View {
     // MARK: - Partnership
 
     /// The first thing on the first screen: who this app is run with.
+    ///
+    /// It arrives a beat after the masthead — the eye lands on the title,
+    /// then this settles in underneath — and a slow band of light crosses it
+    /// every few seconds so it keeps drawing attention without ever moving,
+    /// flashing, or asking to be dismissed.
     private var partnershipStrip: some View {
         HStack(spacing: 9) {
             Image(systemName: "leaf.fill")
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(GMTheme.accent)
+                .scaleEffect(partnershipIn ? 1 : 0.4)
+                .rotationEffect(.degrees(partnershipIn ? 0 : -35))
 
             Text("partnership_line")
                 .font(GMTheme.ui(12.5, .medium))
@@ -108,9 +118,43 @@ struct WelcomeView: View {
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .background(GMTheme.accentSoft)
+        .background {
+            ZStack {
+                GMTheme.accentSoft
+                // The travelling highlight. Clipped by the strip itself, so
+                // it reads as light crossing the surface rather than a shape.
+                LinearGradient(
+                    colors: [.clear, GMTheme.accent.opacity(0.20), .clear],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(width: 130)
+                .offset(x: sweep * 300)
+            }
+        }
         .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
         .gmBorder(GMTheme.accent.opacity(0.22))
+        .opacity(partnershipIn ? 1 : 0)
+        .scaleEffect(partnershipIn ? 1 : 0.94)
+        .offset(y: partnershipIn ? 0 : 14)
+        .onAppear {
+            withAnimation(.spring(response: 0.65, dampingFraction: 0.7).delay(0.22)) {
+                partnershipIn = true
+            }
+        }
+        // Driven by the view's own task rather than a Timer publisher: a
+        // publisher stored on the struct is rebuilt every time SwiftUI
+        // re-initialises the view, which on a screen that re-renders on every
+        // keystroke would restart the interval before it ever fired.
+        .task {
+            try? await Task.sleep(for: .seconds(1.1))
+            while !Task.isCancelled {
+                withAnimation(.easeInOut(duration: 1.4)) { sweep = 1 }
+                try? await Task.sleep(for: .seconds(1.5))
+                sweep = -1
+                try? await Task.sleep(for: .seconds(3.5))
+            }
+        }
     }
 
     // MARK: - Authentication panel
@@ -192,7 +236,7 @@ struct WelcomeView: View {
 
             if error == .tooManyAttempts {
                 Button {
-                    Haptics.light()
+                    Haptics.tap()
                     callRoadside()
                 } label: {
                     Label("roadside_assistance", systemImage: "wrench.and.screwdriver.fill")
@@ -320,7 +364,7 @@ struct WelcomeView: View {
     }
 
     private func copyPromoCode() {
-        Haptics.light()
+        Haptics.select()
         UIPasteboard.general.string = GMConfig.promoCode
         withAnimation { promoCopied = true }
         Task {
@@ -354,7 +398,7 @@ struct WelcomeView: View {
     private func submit(auto: Bool) {
         guard canSubmit else { return }
         autoSubmitTask?.cancel()
-        Haptics.light()
+        Haptics.tap()
         focusedField = nil
         Task {
             await appState.resolveReservation(resCode: resCode, plateSuffix: plateSuffix)

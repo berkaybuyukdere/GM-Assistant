@@ -4,14 +4,18 @@
 //
 //  Photo capture and upload for one record type.
 //
-//  Check-out and return are guided: the screen shows the walk-around as a
-//  set of named slots the customer fills, rather than a bare picker. The
-//  guide prompts, it does not gate — upload stays available with whatever
-//  has been taken, and only warns about what is still missing. Blocking a
-//  customer who cannot reach the far side of the car in a tight garage
-//  would cost more evidence than it gains.
+//  Check-out and return are guided by a map rather than a list: a top-down
+//  car with a marker everywhere a shot is needed. Standing at the marker's
+//  position and pointing at the car is the whole instruction, which survives
+//  translation better than any label.
 //
-//  Other record types keep the free-form grid.
+//  Corners get their own markers because that is where parking damage lands,
+//  each wheel gets its own, and the cabin takes as many photos as it needs.
+//
+//  The guide prompts, it does not gate — upload stays available with whatever
+//  was taken and only notes what is still missing. Blocking a customer who
+//  cannot reach the far side of the car in a tight garage would cost more
+//  evidence than it gains.
 //
 
 import SwiftUI
@@ -24,40 +28,62 @@ struct PhotoCaptureView: View {
     let reservation: CustomerReservation
     let type: CustomerRecordType
 
-    /// Named walk-around shots, keyed by angle.
+    /// Named single shots, keyed by position on the car.
     @State private var slotImages: [PhotoAngle: UIImage] = [:]
-    /// Anything beyond the guide (close-ups, extra detail).
-    @State private var extraImages: [UIImage] = []
+    /// Sections that take any number of photos.
+    @State private var collectionImages: [PhotoCollection: [UIImage]] = [:]
 
     @State private var pickerItems: [PhotosPickerItem] = []
     @State private var showCamera = false
     @State private var showLibrary = false
-    @State private var showAddSource = false
-    @State private var showManage = false
-    /// Which slot the next picked image fills; `nil` means the extras section.
-    @State private var targetAngle: PhotoAngle?
-    @State private var manageAngle: PhotoAngle?
+    /// Which marker or tile currently owns an open menu — the menu is a
+    /// popover on that exact view, so it appears over what was tapped.
+    @State private var openSlotMenu: PhotoAngle?
+    @State private var openCollectionMenu: PhotoCollection?
+    @State private var pickTarget: PickTarget?
 
     @State private var uploading = false
     @State private var progress: Double = 0
     @State private var uploadFailed = false
     @State private var uploadDone = false
 
+    private enum PickTarget: Equatable {
+        case slot(PhotoAngle)
+        case collection(PhotoCollection)
+    }
+
+    // MARK: - Derived
+
     private var guide: [PhotoAngle] { PhotoAngle.guide(for: type) }
     private var isGuided: Bool { !guide.isEmpty }
 
     private var filledCount: Int { slotImages.count }
     private var missingCount: Int { max(0, guide.count - filledCount) }
-    private var totalPhotos: Int { filledCount + extraImages.count }
+
+    private func images(in collection: PhotoCollection) -> [UIImage] {
+        collectionImages[collection] ?? []
+    }
+
+    private var totalPhotos: Int {
+        filledCount + PhotoCollection.allCases.reduce(0) { $0 + images(in: $1).count }
+    }
+
     private var canAddMore: Bool { totalPhotos < GMConfig.maxPhotosPerSubmission }
 
-    /// Guide shots in walk-around order first, then extras — so the uploaded
-    /// set reads in the order it was meant to be taken.
+    /// Named slots in walk-around order, then the cabin, then extras — so the
+    /// uploaded set reads in the order it was meant to be taken.
     private var uploadItems: [PhotoUploadItem] {
         var items = guide.compactMap { angle in
             slotImages[angle].map { PhotoUploadItem(image: $0, tag: angle.fileTag) }
         }
-        items += extraImages.map { PhotoUploadItem(image: $0, tag: isGuided ? "99-extra" : nil) }
+        for collection in PhotoCollection.allCases {
+            for (index, image) in images(in: collection).enumerated() {
+                items.append(PhotoUploadItem(
+                    image: image,
+                    tag: isGuided ? "\(collection.fileTag)-\(String(format: "%02d", index + 1))" : nil
+                ))
+            }
+        }
         return items
     }
 
@@ -70,6 +96,8 @@ struct PhotoCaptureView: View {
         case .note: return "note"
         }
     }
+
+    // MARK: - Body
 
     var body: some View {
         NavigationStack {
@@ -97,6 +125,7 @@ struct PhotoCaptureView: View {
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
+                        Haptics.tap()
                         dismiss()
                     } label: {
                         Text("close")
@@ -108,34 +137,16 @@ struct PhotoCaptureView: View {
             }
             .fullScreenCover(isPresented: $showCamera) {
                 CameraPicker { image in
-                    if let image { accept(image) } else { targetAngle = nil }
+                    if let image { accept(image) } else { pickTarget = nil }
                 }
                 .ignoresSafeArea()
             }
             .photosPicker(
                 isPresented: $showLibrary,
                 selection: $pickerItems,
-                maxSelectionCount: targetAngle == nil
-                    ? max(1, GMConfig.maxPhotosPerSubmission - totalPhotos)
-                    : 1,
+                maxSelectionCount: librarySelectionLimit,
                 matching: .images
             )
-            .confirmationDialog("add_photo", isPresented: $showAddSource, titleVisibility: .visible) {
-                Button("take_photo") { showCamera = true }
-                Button("choose_from_library") { showLibrary = true }
-                Button("cancel", role: .cancel) { targetAngle = nil }
-            }
-            .confirmationDialog("photo_options", isPresented: $showManage, titleVisibility: .visible) {
-                Button("retake") {
-                    targetAngle = manageAngle
-                    showAddSource = true
-                }
-                Button("remove", role: .destructive) {
-                    if let manageAngle { slotImages[manageAngle] = nil }
-                    manageAngle = nil
-                }
-                Button("cancel", role: .cancel) { manageAngle = nil }
-            }
             .onChange(of: pickerItems) { _, newItems in
                 guard !newItems.isEmpty else { return }
                 Task { await absorb(newItems) }
@@ -144,33 +155,57 @@ struct PhotoCaptureView: View {
         .interactiveDismissDisabled(uploading)
     }
 
+    private var librarySelectionLimit: Int {
+        switch pickTarget {
+        case .slot, .none:
+            return 1
+        case .collection:
+            return max(1, GMConfig.maxPhotosPerSubmission - totalPhotos)
+        }
+    }
+
     // MARK: - Picking
 
     private func accept(_ image: UIImage) {
-        if let angle = targetAngle {
+        switch pickTarget {
+        case .slot(let angle):
             slotImages[angle] = image
-        } else if canAddMore {
-            extraImages.append(image)
+            Haptics.capture()
+        case .collection(let collection):
+            guard canAddMore else { Haptics.warning(); return }
+            collectionImages[collection, default: []].append(image)
+            Haptics.capture()
+        case .none:
+            break
         }
-        targetAngle = nil
+        pickTarget = nil
     }
 
     private func absorb(_ items: [PhotosPickerItem]) async {
+        let target = pickTarget
         for item in items {
             guard let data = try? await item.loadTransferable(type: Data.self),
                   let image = UIImage(data: data) else { continue }
+            pickTarget = target
             accept(image)
-            // A slot takes exactly one image; extras keep consuming.
-            if targetAngle == nil && !canAddMore { break }
+            // A named slot takes exactly one image; a collection keeps going.
+            if case .slot = target { break }
+            if !canAddMore { break }
         }
         pickerItems = []
-        targetAngle = nil
+        pickTarget = nil
     }
 
-    private func beginAdd(for angle: PhotoAngle?) {
-        Haptics.light()
-        targetAngle = angle
-        showAddSource = true
+    private func begin(_ target: PickTarget, camera: Bool) {
+        Haptics.tap()
+        pickTarget = target
+        openSlotMenu = nil
+        openCollectionMenu = nil
+        // Let the popover finish dismissing before presenting the picker,
+        // otherwise the two presentations collide and neither appears.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            if camera { showCamera = true } else { showLibrary = true }
+        }
     }
 
     // MARK: - Content
@@ -181,10 +216,9 @@ struct PhotoCaptureView: View {
                 VStack(spacing: 14) {
                     if isGuided {
                         walkaroundPanel
-                        extrasPanel
-                    } else {
-                        freeFormPanel
+                        cabinPanel
                     }
+                    collectionPanel(.additional)
                     if uploadFailed { failureNote }
                 }
                 .padding(18)
@@ -210,20 +244,31 @@ struct PhotoCaptureView: View {
         .gmBorder(GMTheme.danger.opacity(0.22), radius: GMTheme.radiusTight)
     }
 
-    // MARK: - Guided walk-around
+    // MARK: - Walk-around map
 
     private var walkaroundPanel: some View {
-        GMPanel("walkaround", spacing: 13) {
+        GMPanel("walkaround", spacing: 12) {
             progressBar
 
-            LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 96), spacing: 9)],
-                spacing: 9
-            ) {
-                ForEach(guide) { angle in
-                    slotTile(angle)
+            GeometryReader { proxy in
+                ZStack {
+                    CarDiagram()
+                        .frame(
+                            width: proxy.size.width * 0.40,
+                            height: proxy.size.height * 0.74
+                        )
+                        .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
+
+                    ForEach(PhotoAngle.mapped) { angle in
+                        marker(angle, in: proxy.size)
+                    }
                 }
             }
+            .frame(height: 360)
+
+            Text("walkaround_hint")
+                .gmCaption(11.5)
+                .fixedSize(horizontal: false, vertical: true)
         } accessory: {
             Text(verbatim: "\(filledCount) / \(guide.count)")
                 .font(GMTheme.ui(12.5, .semibold))
@@ -245,101 +290,251 @@ struct PhotoCaptureView: View {
             }
         }
         .frame(height: 4)
-        .animation(.easeOut(duration: 0.25), value: filledCount)
+        .animation(.easeOut(duration: 0.3), value: filledCount)
     }
 
+    private func marker(_ angle: PhotoAngle, in size: CGSize) -> some View {
+        let position = angle.mapPosition ?? UnitPoint(x: 0.5, y: 0.5)
+        let diameter: CGFloat = angle.group == .wheels ? 32 : 38
+
+        return Button {
+            Haptics.select()
+            openSlotMenu = angle
+        } label: {
+            ZStack {
+                if let image = slotImages[angle] {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: diameter, height: diameter)
+                        .clipShape(Circle())
+                    Circle().strokeBorder(GMTheme.accent, lineWidth: 2.5)
+                } else {
+                    Circle().fill(GMTheme.surface)
+                    Circle().strokeBorder(
+                        GMTheme.accent.opacity(0.6),
+                        style: StrokeStyle(lineWidth: 1.5, dash: [3.5, 3])
+                    )
+                    Image(systemName: angle.icon)
+                        .font(.system(size: diameter * 0.36, weight: .semibold))
+                        .foregroundStyle(GMTheme.accent.opacity(0.85))
+                }
+            }
+            .frame(width: diameter, height: diameter)
+            .shadow(color: .black.opacity(0.10), radius: 3, y: 1)
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: slotMenuBinding(angle)) {
+            slotMenu(angle)
+        }
+        .accessibilityLabel(Text(angle.labelKey))
+        .position(x: position.x * size.width, y: position.y * size.height)
+    }
+
+    private func slotMenuBinding(_ angle: PhotoAngle) -> Binding<Bool> {
+        Binding(
+            get: { openSlotMenu == angle },
+            set: { if !$0 && openSlotMenu == angle { openSlotMenu = nil } }
+        )
+    }
+
+    private func slotMenu(_ angle: PhotoAngle) -> some View {
+        captureMenu(
+            title: angle.labelKey,
+            hasPhoto: slotImages[angle] != nil,
+            onCamera: { begin(.slot(angle), camera: true) },
+            onLibrary: { begin(.slot(angle), camera: false) },
+            onRemove: {
+                Haptics.remove()
+                slotImages[angle] = nil
+                openSlotMenu = nil
+            }
+        )
+    }
+
+    /// Shared menu body for a marker or a tile. Rendered as a real popover so
+    /// it points at the thing that was tapped rather than sliding up from the
+    /// bottom of the screen.
+    private func captureMenu(
+        title: LocalizedStringKey,
+        hasPhoto: Bool,
+        onCamera: @escaping () -> Void,
+        onLibrary: @escaping () -> Void,
+        onRemove: (() -> Void)?
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(title)
+                .gmSectionLabel(10)
+                .padding(.horizontal, 14)
+                .padding(.top, 12)
+                .padding(.bottom, 8)
+
+            menuRow(
+                titleKey: hasPhoto ? "retake" : "take_photo",
+                icon: "camera.fill",
+                action: onCamera
+            )
+            Rectangle().fill(GMTheme.divider).frame(height: GMTheme.hairline)
+            menuRow(
+                titleKey: "choose_from_library",
+                icon: "photo.stack.fill",
+                action: onLibrary
+            )
+            if hasPhoto, let onRemove {
+                Rectangle().fill(GMTheme.divider).frame(height: GMTheme.hairline)
+                menuRow(
+                    titleKey: "remove",
+                    icon: "trash.fill",
+                    tint: GMTheme.danger,
+                    action: onRemove
+                )
+            }
+        }
+        .frame(width: 228)
+        .background(GMTheme.surface)
+        .presentationCompactAdaptation(.popover)
+    }
+
+    private func menuRow(
+        titleKey: LocalizedStringKey,
+        icon: String,
+        tint: Color = GMTheme.textPrimary,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 11) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(tint == GMTheme.textPrimary ? GMTheme.accent : tint)
+                    .frame(width: 20)
+                Text(titleKey)
+                    .font(GMTheme.ui(15))
+                    .foregroundStyle(tint)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 13)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Cabin (dashboard slot + interior collection)
+
+    private var cabinPanel: some View {
+        GMPanel("cabin_label", spacing: 13) {
+            HStack(spacing: 12) {
+                slotTile(.dashboard)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(PhotoAngle.dashboard.labelKey)
+                        .font(GMTheme.ui(14, .medium))
+                        .foregroundStyle(GMTheme.textPrimary)
+                    Text("angle_dashboard_hint")
+                        .gmCaption(11.5)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
+            }
+
+            Rectangle().fill(GMTheme.divider).frame(height: GMTheme.hairline)
+
+            collectionBody(.interior)
+        }
+    }
+
+    /// A named slot rendered as a tile, for shots that have no place on the map.
     private func slotTile(_ angle: PhotoAngle) -> some View {
         Button {
-            if slotImages[angle] != nil {
-                Haptics.light()
-                manageAngle = angle
-                showManage = true
-            } else {
-                beginAdd(for: angle)
-            }
+            Haptics.select()
+            openSlotMenu = angle
         } label: {
-            VStack(spacing: 6) {
-                ZStack {
-                    if let image = slotImages[angle] {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 96, height: 76)
-                            .clipped()
-                            .overlay(alignment: .topTrailing) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 15))
-                                    .symbolRenderingMode(.palette)
-                                    .foregroundStyle(.white, GMTheme.accent)
-                                    .padding(4)
-                            }
-                    } else {
-                        RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
-                            .strokeBorder(
-                                GMTheme.borderStrong,
-                                style: StrokeStyle(lineWidth: 1, dash: [4, 3])
-                            )
-                            .background(
-                                RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
-                                    .fill(GMTheme.surfaceInset)
-                            )
-                            .frame(width: 96, height: 76)
-                        Image(systemName: angle.icon)
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundStyle(GMTheme.accent.opacity(0.55))
-                    }
+            ZStack {
+                if let image = slotImages[angle] {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 84, height: 68)
+                        .clipped()
+                        .overlay(alignment: .topTrailing) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 15))
+                                .symbolRenderingMode(.palette)
+                                .foregroundStyle(.white, GMTheme.accent)
+                                .padding(4)
+                        }
+                } else {
+                    RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
+                        .strokeBorder(GMTheme.borderStrong, style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                        .background(
+                            RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
+                                .fill(GMTheme.surfaceInset)
+                        )
+                    Image(systemName: angle.icon)
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundStyle(GMTheme.accent.opacity(0.6))
                 }
-                .frame(width: 96, height: 76)
-                .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
-
-                Text(angle.labelKey)
-                    .font(GMTheme.ui(11, .medium))
-                    .foregroundStyle(
-                        slotImages[angle] != nil ? GMTheme.textPrimary : GMTheme.textMuted
-                    )
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
             }
+            .frame(width: 84, height: 68)
+            .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
         }
         .buttonStyle(.plain)
         .disabled(uploading)
+        .popover(isPresented: slotMenuBinding(angle)) { slotMenu(angle) }
+        .accessibilityLabel(Text(angle.labelKey))
     }
 
-    // MARK: - Extras
+    // MARK: - Collections
 
-    private var extrasPanel: some View {
-        GMPanel("additional_photos", spacing: 11) {
-            if extraImages.isEmpty {
-                Text("additional_photos_hint")
+    private func collectionPanel(_ collection: PhotoCollection) -> some View {
+        GMPanel(collection.labelKey, spacing: 11) {
+            collectionBody(collection)
+        } accessory: {
+            if !images(in: collection).isEmpty {
+                Text(verbatim: "\(images(in: collection).count)")
+                    .font(GMTheme.ui(12.5, .semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(GMTheme.accentText)
+            }
+        }
+    }
+
+    private func collectionBody(_ collection: PhotoCollection) -> some View {
+        VStack(alignment: .leading, spacing: 11) {
+            if images(in: collection).isEmpty {
+                Text(collection.hintKey)
                     .gmCaption()
                     .fixedSize(horizontal: false, vertical: true)
             }
             LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 96), spacing: 9)],
+                columns: [GridItem(.adaptive(minimum: 92), spacing: 9)],
                 spacing: 9
             ) {
-                ForEach(Array(extraImages.enumerated()), id: \.offset) { index, image in
-                    extraTile(image: image, index: index)
+                ForEach(Array(images(in: collection).enumerated()), id: \.offset) { index, image in
+                    collectionTile(collection, image: image, index: index)
                 }
                 if canAddMore && !uploading {
-                    addExtraTile
+                    addTile(collection)
                 }
             }
         }
     }
 
-    private func extraTile(image: UIImage, index: Int) -> some View {
+    private func collectionTile(
+        _ collection: PhotoCollection,
+        image: UIImage,
+        index: Int
+    ) -> some View {
         ZStack(alignment: .topTrailing) {
             Image(uiImage: image)
                 .resizable()
                 .scaledToFill()
-                .frame(width: 96, height: 76)
+                .frame(width: 92, height: 72)
                 .clipped()
                 .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
             if !uploading {
                 Button {
-                    Haptics.light()
-                    extraImages.remove(at: index)
+                    Haptics.remove()
+                    collectionImages[collection]?.remove(at: index)
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 17))
@@ -352,76 +547,41 @@ struct PhotoCaptureView: View {
         }
     }
 
-    private var addExtraTile: some View {
+    private func addTile(_ collection: PhotoCollection) -> some View {
         Button {
-            beginAdd(for: nil)
+            Haptics.select()
+            openCollectionMenu = collection
         } label: {
             ZStack {
                 RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
-                    .strokeBorder(
-                        GMTheme.borderStrong,
-                        style: StrokeStyle(lineWidth: 1, dash: [4, 3])
-                    )
+                    .strokeBorder(GMTheme.borderStrong, style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
                     .background(
                         RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
                             .fill(GMTheme.surfaceInset)
                     )
                 Image(systemName: "plus")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(GMTheme.accent.opacity(0.7))
+                    .foregroundStyle(GMTheme.accent.opacity(0.75))
             }
-            .frame(width: 96, height: 76)
+            .frame(width: 92, height: 72)
             .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
         }
         .buttonStyle(.plain)
-    }
-
-    // MARK: - Free-form (non-guided types)
-
-    private var freeFormPanel: some View {
-        Group {
-            if extraImages.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "camera.viewfinder")
-                        .font(.system(size: 32, weight: .light))
-                        .foregroundStyle(GMTheme.textFaint)
-                    Text("no_photos_yet").gmCaption(13)
-                    Button {
-                        beginAdd(for: nil)
-                    } label: {
-                        Label("add_photo", systemImage: "plus")
-                    }
-                    .buttonStyle(GMGhostButtonStyle(color: GMTheme.accentText, height: 42))
-                    .frame(width: 190)
-                    .padding(.top, 4)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 36)
-                .background(GMTheme.surface)
-                .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
-                .gmBorder()
-                .shadow(color: GMTheme.panelShadow, radius: 8, x: 0, y: 2)
-            } else {
-                GMPanel("add_photos", spacing: 11) {
-                    LazyVGrid(
-                        columns: [GridItem(.adaptive(minimum: 96), spacing: 9)],
-                        spacing: 9
-                    ) {
-                        ForEach(Array(extraImages.enumerated()), id: \.offset) { index, image in
-                            extraTile(image: image, index: index)
-                        }
-                        if canAddMore && !uploading {
-                            addExtraTile
-                        }
-                    }
-                } accessory: {
-                    Text(verbatim: "\(extraImages.count) / \(GMConfig.maxPhotosPerSubmission)")
-                        .font(GMTheme.ui(12.5, .medium))
-                        .monospacedDigit()
-                        .foregroundStyle(GMTheme.textMuted)
-                }
-            }
+        .popover(
+            isPresented: Binding(
+                get: { openCollectionMenu == collection },
+                set: { if !$0 && openCollectionMenu == collection { openCollectionMenu = nil } }
+            )
+        ) {
+            captureMenu(
+                title: collection.labelKey,
+                hasPhoto: false,
+                onCamera: { begin(.collection(collection), camera: true) },
+                onLibrary: { begin(.collection(collection), camera: false) },
+                onRemove: nil
+            )
         }
+        .accessibilityLabel(Text("add_photo"))
     }
 
     // MARK: - Upload bar
@@ -464,7 +624,6 @@ struct PhotoCaptureView: View {
             }
 
             Button {
-                Haptics.light()
                 upload()
             } label: {
                 if uploading {
@@ -509,6 +668,7 @@ struct PhotoCaptureView: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             Button {
+                Haptics.tap()
                 dismiss()
             } label: {
                 Text("done")
@@ -522,6 +682,7 @@ struct PhotoCaptureView: View {
     private func upload() {
         let items = uploadItems
         guard !items.isEmpty, !uploading else { return }
+        Haptics.tap()
         uploading = true
         uploadFailed = false
         progress = 0
