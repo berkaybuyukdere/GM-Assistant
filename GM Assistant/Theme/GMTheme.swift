@@ -2,18 +2,20 @@
 //  GMTheme.swift
 //  GM Assistant
 //
-//  Palantir-inspired technical design system (Blueprint.js dark ramp) with
-//  the Green Motion green promoted from a single brand tint to the primary
-//  signal colour of the whole interface.
+//  A Palantir-adjacent design system, softened for customers.
 //
-//  Rules the whole app follows:
-//  • Near-black canvas. Panels are flat and separated by 1px hairlines —
-//    never by shadows or blur.
-//  • 2px corner radius. Instrument-panel geometry, not app-store roundness.
-//  • Micro labels are UPPERCASE with wide tracking; every data value is
-//    monospaced so codes, plates and timestamps align in a column.
-//  • Green carries action and live state. Grey carries structure. Nothing
-//    else gets colour unless it is a warning or a fault.
+//  What it keeps from that language: structure you can read at a glance —
+//  titled panels, hairline separation, aligned data columns, a single
+//  accent that means "action" and "live", and restraint everywhere else.
+//
+//  What it deliberately drops: the operations-console tone. No console
+//  jargon, no razor-sharp corners, no engineering grid, no wall of
+//  uppercase. Corners are gently rounded, panels sit on a warm off-white,
+//  and only the things that really are codes — reservation numbers,
+//  plates — are set in monospace.
+//
+//  Light is the designed-for case; the dark variant is derived from it so
+//  the app still looks intentional at night.
 //
 
 import SwiftUI
@@ -22,68 +24,127 @@ enum GMTheme {
 
     // MARK: - Surfaces
 
-    /// App canvas — the deepest layer.
-    static let background = Color(hex: 0x0E1116)
+    /// App canvas — a warm off-white with the faintest green in it.
+    static let background = Color(
+        light: Color(hex: 0xF4F7F5),
+        dark: Color(hex: 0x0E1116)
+    )
     /// Standard panel surface.
-    static let surface = Color(hex: 0x171B21)
+    static let surface = Color(
+        light: .white,
+        dark: Color(hex: 0x171B21)
+    )
     /// Recessed surface: inputs, wells, thumbnails inside a panel.
-    static let surfaceInset = Color(hex: 0x0B0E12)
+    static let surfaceInset = Color(
+        light: Color(hex: 0xF5F7F9),
+        dark: Color(hex: 0x0B0E12)
+    )
     /// Raised surface: selected rows, pressed controls.
-    static let surfaceRaised = Color(hex: 0x232830)
+    static let surfaceRaised = Color(
+        light: Color(hex: 0xEDF1F4),
+        dark: Color(hex: 0x232830)
+    )
 
     // MARK: - Lines
 
-    static let border = Color(hex: 0x2A3038)
-    static let borderStrong = Color(hex: 0x3A424D)
-    static let divider = Color.white.opacity(0.055)
+    static let border = Color(
+        light: Color(hex: 0xE3E8EC),
+        dark: Color(hex: 0x2A3038)
+    )
+    static let borderStrong = Color(
+        light: Color(hex: 0xCBD4DB),
+        dark: Color(hex: 0x3A424D)
+    )
+    static let divider = Color(
+        light: Color.black.opacity(0.055),
+        dark: Color.white.opacity(0.055)
+    )
 
-    // MARK: - Green ramp — the primary accent
+    // MARK: - Accent
+    //
+    // Named by role, not by lightness, so both themes stay legible:
+    // `accent` fills, `accentText` is read, `onAccent` sits on top of a fill.
 
-    static let green1 = Color(hex: 0x0C3A22)
-    static let green2 = Color(hex: 0x14613A)
-    static let green3 = Color(hex: 0x1E8A55)
-    static let green4 = Color(hex: 0x2FAE6B)
-    static let green5 = Color(hex: 0x6EDBA3)
-
-    /// Primary action / live state.
-    static let accent = green4
-    /// Bright green for text and glyphs on dark surfaces.
-    static let accentBright = green5
-    /// Deep green for fills behind bright green content.
-    static let accentDim = green2
-    /// Translucent green wash for selected/active backgrounds.
-    static let accentWash = green4.opacity(0.14)
+    /// Primary fill: buttons, active bars, live markers.
+    static let accent = Color(
+        light: Color(hex: 0x12915F),
+        dark: Color(hex: 0x2FAE6B)
+    )
+    /// Green used for text and glyphs directly on the canvas.
+    static let accentText = Color(
+        light: Color(hex: 0x0B6E47),
+        dark: Color(hex: 0x6EDBA3)
+    )
+    /// Translucent wash behind selected/active content.
+    static let accentSoft = Color(
+        light: Color(hex: 0x12915F).opacity(0.09),
+        dark: Color(hex: 0x2FAE6B).opacity(0.14)
+    )
+    /// Foreground on top of an `accent` fill.
+    static let onAccent = Color(
+        light: .white,
+        dark: Color(hex: 0x08120C)
+    )
 
     // MARK: - Text
 
-    static let textPrimary = Color(hex: 0xEDF0F3)
-    static let textSecondary = Color(hex: 0xA7B0BC)
-    static let textMuted = Color(hex: 0x717D8B)
-    static let textFaint = Color(hex: 0x566068)
+    static let textPrimary = Color(
+        light: Color(hex: 0x161D26),
+        dark: Color(hex: 0xEDF0F3)
+    )
+    static let textSecondary = Color(
+        light: Color(hex: 0x4E5966),
+        dark: Color(hex: 0xA7B0BC)
+    )
+    static let textMuted = Color(
+        light: Color(hex: 0x76818E),
+        dark: Color(hex: 0x717D8B)
+    )
+    static let textFaint = Color(
+        light: Color(hex: 0x9AA4AF),
+        dark: Color(hex: 0x566068)
+    )
 
     // MARK: - Status
 
-    static let danger = Color(hex: 0xE0575B)
-    static let warning = Color(hex: 0xE8A33D)
-    static let info = Color(hex: 0x7FB2F0)
+    static let danger = Color(
+        light: Color(hex: 0xC7443F),
+        dark: Color(hex: 0xE0575B)
+    )
+    static let warning = Color(
+        light: Color(hex: 0xB4741A),
+        dark: Color(hex: 0xE8A33D)
+    )
+    static let info = Color(
+        light: Color(hex: 0x2E6FCB),
+        dark: Color(hex: 0x7FB2F0)
+    )
 
     // MARK: - Metrics
 
-    /// Blueprint-sharp. Everything in the app uses this or `radiusTight`.
-    static let radius: CGFloat = 3
-    static let radiusTight: CGFloat = 2
+    /// Softly rounded — crisp, but nothing here is a razor.
+    static let radius: CGFloat = 10
+    static let radiusTight: CGFloat = 7
     static let hairline: CGFloat = 1
-    static let panelPadding: CGFloat = 14
+    static let panelPadding: CGFloat = 15
     static let gutter: CGFloat = 12
+
+    /// Barely-there lift, light theme only. In dark, panels separate by
+    /// their border alone.
+    static let panelShadow = Color(
+        light: Color.black.opacity(0.045),
+        dark: Color.clear
+    )
 
     // MARK: - Type
 
-    /// UI sans — labels, prose, button text.
+    /// UI sans — labels, prose, button text, and most values.
     static func ui(_ size: CGFloat = 14, _ weight: Font.Weight = .regular) -> Font {
         .system(size: size, weight: weight)
     }
 
-    /// Monospace — every value that is data: codes, plates, times, counts.
+    /// Monospace — reserved for things that genuinely are codes:
+    /// reservation numbers and plates. Not for dates or names.
     static func mono(_ size: CGFloat = 14, _ weight: Font.Weight = .medium) -> Font {
         .system(size: size, weight: weight, design: .monospaced)
     }
@@ -92,6 +153,7 @@ enum GMTheme {
 
     static let card = surface
     static let cardCornerRadius: CGFloat = radius
+    static let accentBright = accentText
 
     static func titleFont(_ size: CGFloat = 28) -> Font { ui(size, .bold) }
     static func bodyFont(_ size: CGFloat = 16) -> Font { ui(size) }
@@ -99,8 +161,8 @@ enum GMTheme {
 }
 
 extension Color {
-    /// `Color(hex: 0x2FAE6B)` — the palette above is written the way a design
-    /// spec is written, not as float triples.
+    /// `Color(hex: 0x12915F)` — the palette is written the way a design spec
+    /// is written, not as float triples.
     init(hex: UInt32) {
         self.init(
             .sRGB,
@@ -119,15 +181,22 @@ extension Color {
     }
 }
 
-// MARK: - Micro label
+// MARK: - Section label
 
 extension View {
-    /// The uppercase, wide-tracked micro label that titles every section and
-    /// every data field in the interface.
-    func gmMicroLabel(_ size: CGFloat = 10, color: Color = GMTheme.textMuted) -> some View {
+    /// The small tracked label that titles a panel. Used for section headers
+    /// only — field labels and body copy stay in sentence case, which is what
+    /// keeps the interface from reading as a readout.
+    func gmSectionLabel(_ size: CGFloat = 11, color: Color = GMTheme.textSecondary) -> some View {
         self.font(.system(size: size, weight: .semibold))
-            .tracking(size * 0.14)
+            .tracking(size * 0.07)
             .textCase(.uppercase)
+            .foregroundStyle(color)
+    }
+
+    /// Quiet caption used under fields and beside status dots.
+    func gmCaption(_ size: CGFloat = 12, color: Color = GMTheme.textMuted) -> some View {
+        self.font(.system(size: size, weight: .regular))
             .foregroundStyle(color)
     }
 
@@ -138,50 +207,28 @@ extension View {
                 .strokeBorder(color, lineWidth: GMTheme.hairline)
         )
     }
-}
 
-// MARK: - Technical grid backdrop
-
-/// Faint engineering grid behind the canvas. Barely visible by design — it
-/// reads as texture, not as a pattern.
-struct GMGridBackground: View {
-    var spacing: CGFloat = 28
-
-    var body: some View {
-        Canvas { context, size in
-            var path = Path()
-            var x: CGFloat = 0
-            while x <= size.width {
-                path.move(to: CGPoint(x: x, y: 0))
-                path.addLine(to: CGPoint(x: x, y: size.height))
-                x += spacing
-            }
-            var y: CGFloat = 0
-            while y <= size.height {
-                path.move(to: CGPoint(x: 0, y: y))
-                path.addLine(to: CGPoint(x: size.width, y: y))
-                y += spacing
-            }
-            context.stroke(path, with: .color(.white.opacity(0.021)), lineWidth: 0.5)
-        }
-        .allowsHitTesting(false)
+    /// Legacy name — older call sites used this for every small label.
+    func gmMicroLabel(_ size: CGFloat = 10, color: Color = GMTheme.textMuted) -> some View {
+        self.gmSectionLabel(size, color: color)
     }
 }
 
-/// The standard screen background: canvas + grid + a soft green horizon glow
-/// anchored top-left, so the green reads as ambient light in the room rather
-/// than as a decorative gradient.
+// MARK: - Canvas
+
+/// The standard screen background: a warm canvas lit by a soft green wash
+/// from the top-left, so the brand colour is present as light in the room
+/// rather than as decoration.
 struct GMCanvas: View {
     var body: some View {
         ZStack {
             GMTheme.background
             RadialGradient(
-                colors: [GMTheme.green4.opacity(0.10), .clear],
-                center: UnitPoint(x: 0.12, y: -0.05),
+                colors: [GMTheme.accent.opacity(0.07), .clear],
+                center: UnitPoint(x: 0.1, y: -0.08),
                 startRadius: 0,
-                endRadius: 420
+                endRadius: 460
             )
-            GMGridBackground()
         }
         .ignoresSafeArea()
     }
@@ -189,8 +236,8 @@ struct GMCanvas: View {
 
 // MARK: - Panel
 
-/// The single container primitive. A flat surface, a hairline frame, and an
-/// optional header rail: a 2px green tick followed by an uppercase label.
+/// The single container primitive: a surface, a hairline frame, and an
+/// optional header — a short green tick followed by a section label.
 struct GMPanel<Content: View, Accessory: View>: View {
     private let title: LocalizedStringKey?
     private let content: Content
@@ -215,16 +262,17 @@ struct GMPanel<Content: View, Accessory: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if let title {
-                HStack(spacing: 8) {
-                    Rectangle()
+                HStack(spacing: 9) {
+                    Capsule()
                         .fill(GMTheme.accent)
-                        .frame(width: 2, height: 11)
-                    Text(title).gmMicroLabel(10, color: GMTheme.textSecondary)
+                        .frame(width: 3, height: 12)
+                    Text(title).gmSectionLabel()
                     Spacer(minLength: 8)
                     accessory
                 }
                 .padding(.horizontal, padding)
-                .padding(.vertical, 10)
+                .padding(.top, 13)
+                .padding(.bottom, 11)
 
                 Rectangle()
                     .fill(GMTheme.divider)
@@ -240,71 +288,72 @@ struct GMPanel<Content: View, Accessory: View>: View {
         .background(GMTheme.surface)
         .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
         .gmBorder()
+        .shadow(color: GMTheme.panelShadow, radius: 8, x: 0, y: 2)
     }
 }
 
 // MARK: - Data row
 
-/// One label/value line. The label is a micro label on the left, the value is
-/// monospaced and right-aligned, so a stack of rows forms a readable column.
+/// One label/value line. Sentence-case label on the left, value on the right
+/// with monospaced digits so a stack of rows still lines up cleanly.
 struct GMDataRow: View {
     let label: LocalizedStringKey
     let value: String
     var valueColor: Color = GMTheme.textPrimary
-    var mono: Bool = true
+    var mono: Bool = false
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(label).gmMicroLabel(10)
+            Text(label)
+                .font(GMTheme.ui(13))
+                .foregroundStyle(GMTheme.textMuted)
             Spacer(minLength: 8)
             Text(value)
-                .font(mono ? GMTheme.mono(13) : GMTheme.ui(13, .medium))
+                .font(mono ? GMTheme.mono(13, .semibold) : GMTheme.ui(13.5, .medium))
+                .monospacedDigit()
                 .foregroundStyle(valueColor)
                 .multilineTextAlignment(.trailing)
         }
     }
 }
 
-// MARK: - Chip / tag
+// MARK: - Chip
 
-/// A bordered monospace chip: plate numbers, RES codes, counts.
+/// A soft-filled monospace chip: plate numbers, reservation codes.
 struct GMChip: View {
     let text: String
-    var tint: Color = GMTheme.accentBright
+    var tint: Color = GMTheme.accentText
     var size: CGFloat = 13
 
     var body: some View {
         Text(text)
             .font(GMTheme.mono(size, .semibold))
-            .tracking(0.5)
+            .tracking(0.4)
             .foregroundStyle(tint)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 5)
             .background(tint.opacity(0.10))
             .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
-            .gmBorder(tint.opacity(0.30), radius: GMTheme.radiusTight)
     }
 }
 
 // MARK: - Status dot
 
-/// Small square status indicator. Square, not round — it reads as a state LED
-/// on an instrument panel rather than as a notification bubble.
+/// Small round status indicator, optionally breathing to signal "live".
 struct GMStatusDot: View {
     var color: Color = GMTheme.accent
-    var size: CGFloat = 6
+    var size: CGFloat = 7
     var pulsing: Bool = false
 
     @State private var on = false
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 1, style: .continuous)
+        Circle()
             .fill(color)
             .frame(width: size, height: size)
-            .shadow(color: color.opacity(0.9), radius: 3)
-            .opacity(pulsing && on ? 0.35 : 1)
+            .opacity(pulsing && on ? 0.3 : 1)
             .animation(
-                pulsing ? .easeInOut(duration: 0.95).repeatForever(autoreverses: true) : .default,
+                pulsing ? .easeInOut(duration: 1.0).repeatForever(autoreverses: true) : .default,
                 value: on
             )
             .onAppear { if pulsing { on = true } }
@@ -313,8 +362,7 @@ struct GMStatusDot: View {
 
 // MARK: - Icon frame
 
-/// Square, hairline-framed glyph holder. Replaces the old circular badge —
-/// circles are soft, squares belong to this system.
+/// Softly rounded, tinted glyph holder.
 struct GMIconFrame: View {
     let systemName: String
     var tint: Color = GMTheme.accent
@@ -323,9 +371,7 @@ struct GMIconFrame: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
-                .fill(tint.opacity(0.12))
-            RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
-                .strokeBorder(tint.opacity(0.28), lineWidth: GMTheme.hairline)
+                .fill(tint.opacity(0.11))
             Image(systemName: systemName)
                 .font(.system(size: size * 0.44, weight: .semibold))
                 .foregroundStyle(tint)
@@ -334,7 +380,7 @@ struct GMIconFrame: View {
     }
 }
 
-/// Kept for older call sites; now renders the square frame.
+/// Kept for older call sites.
 struct GMIconBadge: View {
     let systemName: String
     var tint: Color = GMTheme.accent
@@ -347,14 +393,14 @@ struct GMIconBadge: View {
 
 // MARK: - Buttons
 
-/// Filled green action. Sharp corners, hairline lift, uppercase tracked label.
+/// Filled green action.
 ///
-/// Disabled does *not* mean "the same button, faded" — a translucent green fill
-/// with dark text is unreadable. Disabled renders as an inert recessed slab so
-/// the control still reads as a control, just an unavailable one.
+/// Disabled does *not* mean "the same button, faded" — a translucent fill
+/// with light text is unreadable. Disabled renders as an inert recessed slab
+/// so the control still reads as a control, just an unavailable one.
 struct GMPrimaryButtonStyle: ButtonStyle {
     var color: Color = GMTheme.accent
-    var height: CGFloat = 46
+    var height: CGFloat = 48
 
     func makeBody(configuration: Configuration) -> some View {
         Slab(configuration: configuration, color: color, height: height)
@@ -368,58 +414,54 @@ struct GMPrimaryButtonStyle: ButtonStyle {
 
         var body: some View {
             configuration.label
-                .font(.system(size: 13, weight: .bold))
-                .tracking(0.9)
-                .textCase(.uppercase)
-                .foregroundStyle(isEnabled ? Color(hex: 0x08120C) : GMTheme.textFaint)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(isEnabled ? GMTheme.onAccent : GMTheme.textFaint)
                 .frame(maxWidth: .infinity)
                 .frame(height: height)
                 .background(
                     isEnabled
-                        ? (configuration.isPressed ? color.opacity(0.78) : color)
+                        ? (configuration.isPressed ? color.opacity(0.82) : color)
                         : GMTheme.surfaceInset
                 )
-                .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous)
+                    RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
                         .strokeBorder(
-                            isEnabled ? .white.opacity(0.18) : GMTheme.border,
+                            isEnabled ? .clear : GMTheme.border,
                             lineWidth: GMTheme.hairline
                         )
                 )
-                .animation(.easeOut(duration: 0.12), value: isEnabled)
+                .animation(.easeOut(duration: 0.14), value: isEnabled)
                 .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
         }
     }
 }
 
-/// Outlined action — the secondary tier. Used for destructive/utility calls
+/// Outlined action — the secondary tier, for utility and emergency calls
 /// that must not compete with the green primary.
 struct GMGhostButtonStyle: ButtonStyle {
     var color: Color = GMTheme.textSecondary
-    var height: CGFloat = 46
+    var height: CGFloat = 48
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 13, weight: .semibold))
-            .tracking(0.9)
-            .textCase(.uppercase)
+            .font(.system(size: 15, weight: .semibold))
             .foregroundStyle(color)
             .frame(maxWidth: .infinity)
             .frame(height: height)
-            .background(configuration.isPressed ? GMTheme.surfaceRaised : GMTheme.surfaceInset)
-            .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
+            .background(configuration.isPressed ? color.opacity(0.10) : GMTheme.surfaceInset)
+            .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous)
-                    .strokeBorder(color.opacity(0.35), lineWidth: GMTheme.hairline)
+                RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
+                    .strokeBorder(color.opacity(0.28), lineWidth: GMTheme.hairline)
             )
             .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
-// MARK: - Legacy card (thin wrapper over GMPanel)
+// MARK: - Legacy card
 
-/// Older screens still build `GMCard { ... }`; it now renders a headerless panel.
+/// Older screens still build `GMCard { ... }`; renders a headerless panel.
 struct GMCard<Content: View>: View {
     @ViewBuilder var content: Content
 

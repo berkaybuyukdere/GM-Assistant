@@ -50,30 +50,30 @@ struct ShuttleFullScreenMapView: View {
                             if !stale {
                                 ShuttleLivePulse()
                             }
-                            RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
+                            Circle()
                                 .fill(stale ? Color.gray : GMTheme.accent)
-                            RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
-                                .strokeBorder(.white.opacity(0.5), lineWidth: 1)
+                            Circle()
+                                .strokeBorder(.white.opacity(0.9), lineWidth: 2)
                             Image(systemName: "bus.fill")
-                                .font(.system(size: 15, weight: .bold))
-                                .foregroundStyle(Color(hex: 0x08120C))
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(.white)
                         }
-                        .frame(width: 34, height: 34)
+                        .frame(width: 38, height: 38)
+                        .shadow(color: .black.opacity(0.18), radius: 3, y: 1)
                     }
                 }
             }
             if let mp = tracking.meetingPoint {
                 Annotation(tracking.meetingLabel ?? String(localized: "shuttle_meeting_point"), coordinate: mp) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
-                            .fill(GMTheme.danger)
-                        RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
-                            .strokeBorder(.white.opacity(0.5), lineWidth: 1)
+                        Circle().fill(GMTheme.danger)
+                        Circle().strokeBorder(.white.opacity(0.9), lineWidth: 2)
                         Image(systemName: "flag.fill")
-                            .font(.system(size: 13, weight: .bold))
+                            .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(.white)
                     }
-                    .frame(width: 28, height: 28)
+                    .frame(width: 32, height: 32)
+                    .shadow(color: .black.opacity(0.18), radius: 3, y: 1)
                 }
             }
         }
@@ -103,37 +103,41 @@ struct ShuttleFullScreenMapView: View {
                 if let best = tracking.bestDriver(asOf: context.date) {
                     let stale = best.isStale(asOf: context.date)
                     if let minutes = tracking.etaMinutes {
-                        HStack(alignment: .firstTextBaseline, spacing: 9) {
+                        HStack(spacing: 9) {
                             ShuttlePulsingDot(color: stale ? GMTheme.warning : GMTheme.accent)
                             Text(String(format: String(localized: "shuttle_eta_minutes"), minutes))
-                                .font(GMTheme.mono(18, .bold))
-                                .foregroundStyle(stale ? GMTheme.warning : GMTheme.accentBright)
+                                .font(GMTheme.ui(18, .bold))
+                                .monospacedDigit()
+                                .foregroundStyle(stale ? GMTheme.warning : GMTheme.accentText)
                         }
                         if !tracking.etaIsRouteBased {
-                            Text("shuttle_eta_estimated")
-                                .gmMicroLabel(8.5, color: GMTheme.textFaint)
+                            Text("shuttle_eta_estimated").gmCaption(11.5, color: GMTheme.textFaint)
                         }
                     } else {
                         HStack(spacing: 9) {
                             ShuttlePulsingDot(color: stale ? GMTheme.warning : GMTheme.accent)
                             Text("shuttle_on_the_way")
-                                .gmMicroLabel(10, color: GMTheme.accentBright)
+                                .font(GMTheme.ui(15, .semibold))
+                                .foregroundStyle(GMTheme.accentText)
                         }
                     }
                     if stale {
                         Label("shuttle_signal_weak", systemImage: "wifi.exclamationmark")
-                            .gmMicroLabel(8.5, color: GMTheme.warning)
+                            .font(GMTheme.ui(11.5))
+                            .foregroundStyle(GMTheme.warning)
                     }
                 } else {
                     Label("shuttle_location_unavailable", systemImage: "exclamationmark.circle")
-                        .gmMicroLabel(9, color: GMTheme.textMuted)
+                        .font(GMTheme.ui(12.5))
+                        .foregroundStyle(GMTheme.textMuted)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(GMTheme.surface.opacity(0.92))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+            .background(.regularMaterial)
             .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
-            .gmBorder(GMTheme.borderStrong)
+            .gmBorder(GMTheme.border)
+            .shadow(color: .black.opacity(0.12), radius: 8, y: 2)
         }
     }
 
@@ -143,12 +147,12 @@ struct ShuttleFullScreenMapView: View {
             dismiss()
         } label: {
             Image(systemName: "xmark")
-                .font(.system(size: 13, weight: .bold))
+                .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(GMTheme.textPrimary)
-                .frame(width: 38, height: 38)
-                .background(GMTheme.surface.opacity(0.92))
-                .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
-                .gmBorder(GMTheme.borderStrong)
+                .frame(width: 40, height: 40)
+                .background(.regularMaterial)
+                .clipShape(Circle())
+                .shadow(color: .black.opacity(0.12), radius: 8, y: 2)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("shuttle_close_map"))

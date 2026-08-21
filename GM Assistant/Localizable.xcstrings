@@ -356,19 +356,19 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Identifikation"
+            "value": "Buchung finden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Identification"
+            "value": "Find your booking"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kimlik doğrulama"
+            "value": "Rezervasyonunuzu bulun"
           }
         }
       }
@@ -553,6 +553,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Not gönderildi — artık ekibimizde görünüyor."
+          }
+        }
+      }
+    },
+    "partnership_line": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Partnerschaft mit Green Motion & U-Save"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In partnership with Green Motion & U-Save"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Green Motion & U-Save iş birliğiyle"
           }
         }
       }

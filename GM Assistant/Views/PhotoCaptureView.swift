@@ -6,9 +6,6 @@
 //  type. Uploads go to Storage, then a customerRecords doc is created
 //  so staff see the photos live.
 //
-//  Presented as a capture queue: a counter strip, an indexed grid, and a
-//  fixed transmit bar at the bottom.
-//
 
 import SwiftUI
 import PhotosUI
@@ -52,18 +49,15 @@ struct PhotoCaptureView: View {
             }
             .toolbarBackground(GMTheme.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    HStack(spacing: 7) {
-                        Rectangle()
+                    HStack(spacing: 8) {
+                        Capsule()
                             .fill(GMTheme.accent)
-                            .frame(width: 2, height: 12)
+                            .frame(width: 3, height: 13)
                         Text(titleKey)
-                            .font(.system(size: 11.5, weight: .bold))
-                            .tracking(1.1)
-                            .textCase(.uppercase)
+                            .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(GMTheme.textPrimary)
                     }
                 }
@@ -71,7 +65,9 @@ struct PhotoCaptureView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Text("close").gmMicroLabel(9.5, color: GMTheme.textSecondary)
+                        Text("close")
+                            .font(GMTheme.ui(13.5, .medium))
+                            .foregroundStyle(GMTheme.textSecondary)
                     }
                     .disabled(uploading)
                 }
@@ -102,58 +98,30 @@ struct PhotoCaptureView: View {
     private var contentView: some View {
         VStack(spacing: 0) {
             ScrollView {
-                VStack(spacing: 12) {
-                    queueStrip
+                VStack(spacing: 14) {
                     photoGrid
                     pickButtons
                     if uploadFailed {
                         HStack(alignment: .top, spacing: 9) {
-                            Rectangle()
-                                .fill(GMTheme.danger)
-                                .frame(width: 2)
-                                .frame(maxHeight: .infinity)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(verbatim: "FAULT").gmMicroLabel(8.5, color: GMTheme.danger)
-                                Text("upload_failed")
-                                    .font(GMTheme.ui(12.5))
-                                    .foregroundStyle(GMTheme.textSecondary)
-                            }
+                            Image(systemName: "exclamationmark.circle.fill")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(GMTheme.danger)
+                            Text("upload_failed")
+                                .font(GMTheme.ui(13))
+                                .foregroundStyle(GMTheme.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(11)
+                        .padding(12)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(GMTheme.danger.opacity(0.07))
+                        .background(GMTheme.danger.opacity(0.06))
                         .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
-                        .gmBorder(GMTheme.danger.opacity(0.28), radius: GMTheme.radiusTight)
+                        .gmBorder(GMTheme.danger.opacity(0.22), radius: GMTheme.radiusTight)
                     }
                 }
-                .padding(16)
+                .padding(18)
             }
             uploadBar
         }
-    }
-
-    // MARK: - Queue strip
-
-    private var queueStrip: some View {
-        HStack(spacing: 9) {
-            GMStatusDot(
-                color: images.isEmpty ? GMTheme.textFaint : GMTheme.accent,
-                size: 6
-            )
-            Text(verbatim: "CAPTURE QUEUE")
-                .gmMicroLabel(9, color: GMTheme.textSecondary)
-            Spacer(minLength: 8)
-            Text(verbatim: "\(images.count) / \(maxPhotos)")
-                .font(GMTheme.mono(11, .semibold))
-                .foregroundStyle(images.isEmpty ? GMTheme.textFaint : GMTheme.accentBright)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 9)
-        .background(GMTheme.surface.opacity(0.75))
-        .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
-        .gmBorder()
-        .animation(.easeOut(duration: 0.15), value: images.count)
     }
 
     // MARK: - Grid
@@ -161,57 +129,54 @@ struct PhotoCaptureView: View {
     private var photoGrid: some View {
         Group {
             if images.isEmpty {
-                VStack(spacing: 11) {
-                    Image(systemName: "viewfinder")
-                        .font(.system(size: 30, weight: .light))
+                VStack(spacing: 12) {
+                    Image(systemName: "camera.viewfinder")
+                        .font(.system(size: 32, weight: .light))
                         .foregroundStyle(GMTheme.textFaint)
-                    Text("no_photos_yet")
-                        .gmMicroLabel(9.5, color: GMTheme.textMuted)
+                    Text("no_photos_yet").gmCaption(13)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 44)
+                .padding(.vertical, 48)
                 .background(GMTheme.surface)
                 .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
                 .gmBorder()
+                .shadow(color: GMTheme.panelShadow, radius: 8, x: 0, y: 2)
             } else {
-                LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: 100), spacing: 8)],
-                    spacing: 8
-                ) {
-                    ForEach(Array(images.enumerated()), id: \.offset) { index, image in
-                        ZStack(alignment: .topTrailing) {
-                            Image(uiImage: image)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 104, height: 104)
-                                .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
-                                .gmBorder(GMTheme.border, radius: GMTheme.radiusTight)
-                                .overlay(alignment: .bottomLeading) {
-                                    Text(verbatim: String(format: "%02d", index + 1))
-                                        .font(GMTheme.mono(9, .bold))
-                                        .foregroundStyle(GMTheme.accentBright)
-                                        .padding(.horizontal, 5)
-                                        .padding(.vertical, 2)
-                                        .background(GMTheme.background.opacity(0.85))
-                                        .clipShape(RoundedRectangle(cornerRadius: 1, style: .continuous))
-                                        .padding(5)
-                                }
+                VStack(alignment: .leading, spacing: 11) {
+                    HStack {
+                        Text("add_photos").gmSectionLabel()
+                        Spacer()
+                        Text(verbatim: "\(images.count) / \(maxPhotos)")
+                            .font(GMTheme.ui(12.5, .medium))
+                            .monospacedDigit()
+                            .foregroundStyle(GMTheme.accentText)
+                    }
 
-                            if !uploading {
-                                Button {
-                                    Haptics.light()
-                                    images.remove(at: index)
-                                } label: {
-                                    Image(systemName: "xmark")
-                                        .font(.system(size: 9, weight: .black))
-                                        .foregroundStyle(GMTheme.textPrimary)
-                                        .frame(width: 20, height: 20)
-                                        .background(GMTheme.background.opacity(0.9))
-                                        .clipShape(RoundedRectangle(cornerRadius: 1, style: .continuous))
-                                        .gmBorder(GMTheme.borderStrong, radius: 1)
+                    LazyVGrid(
+                        columns: [GridItem(.adaptive(minimum: 100), spacing: 9)],
+                        spacing: 9
+                    ) {
+                        ForEach(Array(images.enumerated()), id: \.offset) { index, image in
+                            ZStack(alignment: .topTrailing) {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 104, height: 104)
+                                    .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
+
+                                if !uploading {
+                                    Button {
+                                        Haptics.light()
+                                        images.remove(at: index)
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.system(size: 19))
+                                            .symbolRenderingMode(.palette)
+                                            .foregroundStyle(.white, Color.black.opacity(0.45))
+                                    }
+                                    .buttonStyle(.plain)
+                                    .padding(5)
                                 }
-                                .buttonStyle(.plain)
-                                .padding(5)
                             }
                         }
                     }
@@ -230,9 +195,9 @@ struct PhotoCaptureView: View {
             } label: {
                 Label("take_photo", systemImage: "camera.fill")
             }
-            .buttonStyle(GMGhostButtonStyle(color: GMTheme.accentBright, height: 44))
+            .buttonStyle(GMGhostButtonStyle(color: GMTheme.accentText, height: 46))
             .disabled(uploading || images.count >= maxPhotos)
-            .opacity(uploading || images.count >= maxPhotos ? 0.35 : 1)
+            .opacity(uploading || images.count >= maxPhotos ? 0.45 : 1)
 
             PhotosPicker(
                 selection: $pickerItems,
@@ -240,45 +205,45 @@ struct PhotoCaptureView: View {
                 matching: .images
             ) {
                 Label("choose_from_library", systemImage: "photo.stack.fill")
-                    .font(.system(size: 13, weight: .semibold))
-                    .tracking(0.9)
-                    .textCase(.uppercase)
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(GMTheme.textSecondary)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 44)
+                    .frame(height: 46)
                     .background(GMTheme.surfaceInset)
-                    .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
-                    .gmBorder(GMTheme.textSecondary.opacity(0.35))
+                    .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
+                    .gmBorder(GMTheme.textSecondary.opacity(0.28), radius: GMTheme.radiusTight)
             }
             .simultaneousGesture(TapGesture().onEnded { Haptics.light() })
             .disabled(uploading || images.count >= maxPhotos)
-            .opacity(uploading || images.count >= maxPhotos ? 0.35 : 1)
+            .opacity(uploading || images.count >= maxPhotos ? 0.45 : 1)
         }
     }
 
-    // MARK: - Transmit bar
+    // MARK: - Upload bar
 
     private var uploadBar: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 11) {
             if uploading {
-                VStack(spacing: 6) {
+                VStack(spacing: 7) {
                     HStack {
-                        Text(verbatim: "TRANSMITTING").gmMicroLabel(8.5, color: GMTheme.accentBright)
+                        Text("uploading")
+                            .font(GMTheme.ui(12.5, .medium))
+                            .foregroundStyle(GMTheme.accentText)
                         Spacer()
                         Text(verbatim: "\(Int(progress * 100))%")
-                            .font(GMTheme.mono(10, .bold))
-                            .foregroundStyle(GMTheme.accentBright)
+                            .font(GMTheme.ui(12.5, .semibold))
+                            .monospacedDigit()
+                            .foregroundStyle(GMTheme.accentText)
                     }
                     GeometryReader { proxy in
                         ZStack(alignment: .leading) {
-                            Rectangle().fill(GMTheme.surfaceInset)
-                            Rectangle()
+                            Capsule().fill(GMTheme.surfaceRaised)
+                            Capsule()
                                 .fill(GMTheme.accent)
                                 .frame(width: proxy.size.width * progress)
                         }
                     }
-                    .frame(height: 3)
-                    .clipShape(RoundedRectangle(cornerRadius: 1, style: .continuous))
+                    .frame(height: 4)
                 }
             }
 
@@ -289,13 +254,13 @@ struct PhotoCaptureView: View {
                 if uploading {
                     Text("uploading")
                 } else {
-                    Label("upload_photos", systemImage: "arrow.up.to.line")
+                    Label("upload_photos", systemImage: "arrow.up.circle.fill")
                 }
             }
             .buttonStyle(GMPrimaryButtonStyle())
             .disabled(images.isEmpty || uploading)
         }
-        .padding(16)
+        .padding(18)
         .background(
             GMTheme.surface
                 .overlay(alignment: .top) {
@@ -308,26 +273,21 @@ struct PhotoCaptureView: View {
     // MARK: - Success
 
     private var successView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 18) {
             ZStack {
-                RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous)
-                    .fill(GMTheme.accentWash)
-                RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous)
-                    .strokeBorder(GMTheme.accent.opacity(0.5), lineWidth: GMTheme.hairline)
+                Circle().fill(GMTheme.accentSoft)
                 Image(systemName: "checkmark")
-                    .font(.system(size: 30, weight: .bold))
-                    .foregroundStyle(GMTheme.accentBright)
+                    .font(.system(size: 32, weight: .semibold))
+                    .foregroundStyle(GMTheme.accent)
             }
-            .frame(width: 68, height: 68)
+            .frame(width: 76, height: 76)
 
             Text("upload_success")
-                .font(.system(size: 15, weight: .bold))
-                .tracking(1.2)
-                .textCase(.uppercase)
+                .font(GMTheme.ui(19, .semibold))
                 .foregroundStyle(GMTheme.textPrimary)
 
             Text("upload_success_detail")
-                .font(GMTheme.ui(12.5))
+                .font(GMTheme.ui(14))
                 .foregroundStyle(GMTheme.textMuted)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -338,9 +298,9 @@ struct PhotoCaptureView: View {
                 Text("done")
             }
             .buttonStyle(GMPrimaryButtonStyle())
-            .padding(.top, 6)
+            .padding(.top, 8)
         }
-        .padding(30)
+        .padding(32)
     }
 
     private func upload() {

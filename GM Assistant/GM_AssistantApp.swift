@@ -26,10 +26,8 @@ struct GM_AssistantApp: App {
             ContentView()
                 .environment(appState)
                 .tint(GMTheme.accent)
-                // The design system is a dark technical console — it defines its
-                // own surfaces end to end, so it does not follow the system
-                // appearance.
-                .preferredColorScheme(.dark)
+                // Light is the designed-for case; the palette carries a matching
+                // dark variant, so the app follows the customer's own setting.
                 .task {
                     await appState.bootstrap()
                 }
