@@ -2,10 +2,13 @@
 //  ReservationHomeView.swift
 //  GM Assistant
 //
-//  Reservation dashboard: vehicle + reservation cards, photo upload
+//  Reservation dashboard: vehicle + reservation panels, photo upload
 //  actions (check-out / return), shuttle yes-no toggle,
 //  roadside assistance + GM office call buttons, and the customer's
 //  own submissions (live).
+//
+//  Laid out as an operations console: a session strip at the top, then
+//  stacked hairline panels, each titled with a micro label.
 //
 
 import SwiftUI
@@ -43,30 +46,46 @@ struct ReservationHomeView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                GMTheme.background.ignoresSafeArea()
+                GMCanvas()
                 ScrollView {
-                    VStack(spacing: 16) {
-                        vehicleCard
-                        reservationCard
-                        photoActionsCard
-                        noteCard
-                        shuttleCard
-                        assistanceCard
-                        submissionsCard
+                    VStack(spacing: 12) {
+                        sessionStrip
+                        vehiclePanel
+                        reservationPanel
+                        photoActionsPanel
+                        notePanel
+                        shuttlePanel
+                        assistancePanel
+                        submissionsPanel
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                 }
             }
-            .navigationTitle("GM Assistant")
+            .toolbarBackground(GMTheme.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 7) {
+                        Rectangle()
+                            .fill(GMTheme.accent)
+                            .frame(width: 2, height: 12)
+                        Text(verbatim: "GM ASSISTANT")
+                            .font(.system(size: 12, weight: .bold))
+                            .tracking(1.3)
+                            .foregroundStyle(GMTheme.textPrimary)
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("change_reservation") {
+                    Button {
                         Haptics.light()
                         appState.endSession()
+                    } label: {
+                        Text("change_reservation")
+                            .gmMicroLabel(9.5, color: GMTheme.accentBright)
                     }
-                    .font(GMTheme.labelFont(13))
                 }
             }
             .sheet(item: $photoSheetType) { type in
@@ -109,71 +128,76 @@ struct ReservationHomeView: View {
         }
     }
 
+    // MARK: - Session strip
+
+    private var sessionStrip: some View {
+        HStack(spacing: 9) {
+            GMStatusDot(color: GMTheme.accent, size: 6, pulsing: true)
+            Text(verbatim: "SESSION ACTIVE")
+                .gmMicroLabel(9, color: GMTheme.textSecondary)
+            Spacer(minLength: 8)
+            Text(reservation.resKodu)
+                .font(GMTheme.mono(11, .semibold))
+                .tracking(0.6)
+                .foregroundStyle(GMTheme.accentBright)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+        .background(GMTheme.surface.opacity(0.75))
+        .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
+        .gmBorder()
+    }
+
     // MARK: - Vehicle & reservation
 
-    private var vehicleCard: some View {
-        GMCard {
-            HStack(spacing: 14) {
-                GMIconBadge(systemName: "car.side.fill", size: 48)
-                VStack(alignment: .leading, spacing: 4) {
+    private var vehiclePanel: some View {
+        GMPanel("vehicle_label") {
+            HStack(spacing: 13) {
+                GMIconFrame(systemName: "car.side.fill", size: 44)
+                VStack(alignment: .leading, spacing: 6) {
                     if !reservation.vehicleDisplayName.isEmpty {
                         Text(reservation.vehicleDisplayName)
-                            .font(.system(size: 20, weight: .bold))
+                            .font(GMTheme.ui(18, .bold))
+                            .tracking(0.3)
+                            .foregroundStyle(GMTheme.textPrimary)
                     }
                     if !reservation.aracPlaka.isEmpty {
-                        Text(reservation.aracPlaka)
-                            .font(.system(size: 16, weight: .semibold, design: .monospaced))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(GMTheme.accent.opacity(0.12))
-                            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                        GMChip(text: reservation.aracPlaka, size: 14)
                     }
                 }
-                Spacer()
+                Spacer(minLength: 0)
             }
         }
     }
 
-    private var reservationCard: some View {
-        GMCard {
-            HStack {
-                Label {
-                    Text(reservation.resKodu)
-                        .font(.system(size: 16, weight: .bold, design: .monospaced))
-                } icon: {
-                    Image(systemName: "number.square.fill")
-                        .foregroundStyle(GMTheme.accent)
-                }
-                Spacer()
-            }
+    private var reservationPanel: some View {
+        GMPanel("reservation_label", spacing: 9) {
             if let name = reservation.customerName {
-                infoRow(labelKey: "customer", value: name)
+                GMDataRow(label: "customer", value: name, mono: false)
+                rowDivider
             }
             if let checkoutAt = reservation.checkoutAt {
-                infoRow(labelKey: "pickup_date", value: Self.dateFormatter.string(from: checkoutAt))
+                GMDataRow(label: "pickup_date", value: Self.dateFormatter.string(from: checkoutAt))
+                rowDivider
             }
             if let plannedReturn = reservation.plannedReturnAt {
-                infoRow(labelKey: "planned_return", value: Self.dateFormatter.string(from: plannedReturn))
+                GMDataRow(label: "planned_return", value: Self.dateFormatter.string(from: plannedReturn))
+                rowDivider
             }
             if let branch = reservation.pickUpBranch {
-                infoRow(labelKey: "pickup_branch", value: branch)
+                GMDataRow(label: "pickup_branch", value: branch, mono: false)
+                rowDivider
             }
             if let branch = reservation.dropOffBranch {
-                infoRow(labelKey: "dropoff_branch", value: branch)
+                GMDataRow(label: "dropoff_branch", value: branch, mono: false)
             }
         }
     }
 
-    private func infoRow(labelKey: LocalizedStringKey, value: String) -> some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text(labelKey)
-                .font(GMTheme.labelFont(13))
-                .foregroundStyle(GMTheme.textSecondary)
-            Spacer()
-            Text(value)
-                .font(GMTheme.bodyFont(15))
-                .multilineTextAlignment(.trailing)
-        }
+    private var rowDivider: some View {
+        Rectangle()
+            .fill(GMTheme.divider)
+            .frame(height: GMTheme.hairline)
     }
 
     private static let dateFormatter: DateFormatter = {
@@ -185,12 +209,8 @@ struct ReservationHomeView: View {
 
     // MARK: - Photos
 
-    private var photoActionsCard: some View {
-        GMCard {
-            Text("add_photos")
-                .font(GMTheme.labelFont(13))
-                .foregroundStyle(GMTheme.textSecondary)
-                .textCase(.uppercase)
+    private var photoActionsPanel: some View {
+        GMPanel("add_photos", spacing: 8) {
             photoActionButton(
                 type: .checkoutPhotos,
                 titleKey: "checkout_photos",
@@ -214,66 +234,70 @@ struct ReservationHomeView: View {
             Haptics.light()
             photoSheetType = type
         } label: {
-            HStack(spacing: 12) {
-                GMIconBadge(systemName: icon, tint: tint, size: 38)
+            HStack(spacing: 11) {
+                GMIconFrame(systemName: icon, tint: tint, size: 32)
                 Text(titleKey)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 11.5, weight: .semibold))
+                    .tracking(0.9)
+                    .textCase(.uppercase)
                     .foregroundStyle(GMTheme.textPrimary)
-                Spacer()
+                Spacer(minLength: 8)
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(GMTheme.textSecondary)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(GMTheme.textFaint)
             }
-            .padding(14)
-            .background(GMTheme.background)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .padding(11)
+            .background(GMTheme.surfaceInset)
+            .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
+            .gmBorder(GMTheme.border, radius: GMTheme.radiusTight)
         }
         .buttonStyle(.plain)
     }
 
     // MARK: - Note
 
-    private var noteCard: some View {
-        GMCard {
-            HStack(spacing: 10) {
-                GMIconBadge(systemName: "text.bubble.fill", size: 34)
-                Text("write_a_note")
-                    .font(.system(size: 16, weight: .semibold))
-                Spacer()
-            }
+    private var notePanel: some View {
+        GMPanel("write_a_note", spacing: 11) {
             TextField("note_placeholder", text: $noteText, axis: .vertical)
-                .font(GMTheme.bodyFont(15))
+                .font(GMTheme.ui(13.5))
+                .foregroundStyle(GMTheme.textPrimary)
                 .lineLimit(2...4)
                 .focused($noteFieldFocused)
-                .padding(12)
-                .background(GMTheme.background)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .padding(11)
+                .background(GMTheme.surfaceInset)
+                .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
+                .gmBorder(
+                    noteFieldFocused ? GMTheme.accent.opacity(0.5) : GMTheme.border,
+                    radius: GMTheme.radiusTight
+                )
+                .animation(.easeOut(duration: 0.15), value: noteFieldFocused)
 
-            HStack {
+            HStack(spacing: 10) {
                 if noteSent {
-                    Label("note_sent", systemImage: "checkmark.circle.fill")
-                        .font(GMTheme.bodyFont(13))
-                        .foregroundStyle(GMTheme.accent)
-                        .transition(.opacity)
+                    HStack(spacing: 5) {
+                        GMStatusDot(color: GMTheme.accent, size: 5)
+                        Text("note_sent").gmMicroLabel(9, color: GMTheme.accentBright)
+                    }
+                    .transition(.opacity)
                 } else if noteError {
-                    Text("error_unknown")
-                        .font(GMTheme.bodyFont(13))
-                        .foregroundStyle(GMTheme.danger)
+                    HStack(spacing: 5) {
+                        GMStatusDot(color: GMTheme.danger, size: 5)
+                        Text("error_unknown").gmMicroLabel(9, color: GMTheme.danger)
+                    }
                 }
-                Spacer()
+                Spacer(minLength: 0)
                 Button {
                     sendNote()
                 } label: {
                     if noteSaving {
-                        ProgressView().tint(.white)
+                        ProgressView().tint(Color(hex: 0x08120C))
                     } else {
                         Label("send_note", systemImage: "paperplane.fill")
                     }
                 }
-                .buttonStyle(GMPrimaryButtonStyle())
-                .fixedSize()
+                .buttonStyle(GMPrimaryButtonStyle(height: 40))
+                .frame(width: 150)
                 .disabled(noteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || noteSaving)
-                .opacity(noteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1)
             }
             .animation(.easeOut(duration: 0.2), value: noteSent)
         }
@@ -305,30 +329,24 @@ struct ReservationHomeView: View {
 
     // MARK: - Shuttle
 
-    private var shuttleCard: some View {
-        GMCard {
-            HStack(spacing: 10) {
-                GMIconBadge(systemName: "bus.fill", size: 34)
-                Text("shuttle_question")
-                    .font(.system(size: 16, weight: .semibold))
-                Spacer()
-                if shuttleSaving {
-                    ProgressView()
-                }
-            }
-            HStack(spacing: 10) {
+    private var shuttlePanel: some View {
+        GMPanel("shuttle_question", spacing: 11) {
+            HStack(spacing: 8) {
                 shuttleChoiceButton(titleKey: "yes", value: true)
                 shuttleChoiceButton(titleKey: "no", value: false)
             }
+
             if let current = recordService?.shuttleRequested {
-                Label {
+                HStack(spacing: 6) {
+                    GMStatusDot(
+                        color: current ? GMTheme.accent : GMTheme.textFaint,
+                        size: 5
+                    )
                     Text(current ? "shuttle_requested_yes" : "shuttle_requested_no")
-                } icon: {
-                    Image(systemName: current ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .gmMicroLabel(9, color: current ? GMTheme.accentBright : GMTheme.textMuted)
                 }
-                .font(GMTheme.bodyFont(13))
-                .foregroundStyle(current ? GMTheme.accent : GMTheme.textSecondary)
             }
+
             // Live tracking — only when the request is YES; a listener failure
             // (expired session, network) degrades to the static confirmation.
             if recordService?.shuttleRequested == true,
@@ -336,10 +354,22 @@ struct ReservationHomeView: View {
                !tracking.listenerFailed {
                 shuttleLiveSection(tracking)
             }
+
             if shuttleError {
-                Text("error_unknown")
-                    .font(GMTheme.bodyFont(13))
-                    .foregroundStyle(GMTheme.danger)
+                HStack(spacing: 5) {
+                    GMStatusDot(color: GMTheme.danger, size: 5)
+                    Text("error_unknown").gmMicroLabel(9, color: GMTheme.danger)
+                }
+            }
+        } accessory: {
+            if recordService?.shuttleRequested == true,
+               let tracking = shuttleTracking,
+               !tracking.listenerFailed,
+               !tracking.drivers.isEmpty {
+                HStack(spacing: 5) {
+                    GMStatusDot(color: GMTheme.accent, size: 5, pulsing: true)
+                    Text(verbatim: "LIVE").gmMicroLabel(8.5, color: GMTheme.accentBright)
+                }
             }
         }
     }
@@ -350,22 +380,20 @@ struct ReservationHomeView: View {
     private func shuttleLiveSection(_ tracking: ShuttleTrackingService) -> some View {
         if tracking.drivers.isEmpty {
             // No drivers sharing right now — calm placeholder, never an empty map.
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 Image(systemName: "bus")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(GMTheme.textSecondary)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(GMTheme.textFaint)
                 Text("shuttle_no_driver_yet")
-                    .font(GMTheme.bodyFont(13))
-                    .foregroundStyle(GMTheme.textSecondary)
+                    .gmMicroLabel(9, color: GMTheme.textMuted)
             }
-            .padding(.top, 2)
+            .padding(.vertical, 2)
         } else {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 9) {
                 shuttleEtaHeadline(tracking)
                 shuttleMiniMap(tracking)
                 shuttleFreshnessCaption(tracking)
             }
-            .padding(.top, 2)
             .onChange(of: tracking.drivers) { _, _ in
                 syncShuttleMap(tracking)
             }
@@ -383,38 +411,34 @@ struct ReservationHomeView: View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
             if let best = tracking.bestDriver(asOf: context.date) {
                 let stale = best.isStale(asOf: context.date)
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 5) {
                     if let minutes = tracking.etaMinutes {
-                        HStack(spacing: 8) {
+                        HStack(alignment: .firstTextBaseline, spacing: 9) {
                             ShuttlePulsingDot(color: stale ? GMTheme.warning : GMTheme.accent)
                             Text(String(format: String(localized: "shuttle_eta_minutes"), minutes))
-                                .font(.system(size: 17, weight: .bold))
-                                .foregroundStyle(GMTheme.accent)
+                                .font(GMTheme.mono(19, .bold))
+                                .foregroundStyle(stale ? GMTheme.warning : GMTheme.accentBright)
                         }
                         if !tracking.etaIsRouteBased {
                             Text("shuttle_eta_estimated")
-                                .font(GMTheme.bodyFont(12))
-                                .foregroundStyle(GMTheme.textSecondary)
+                                .gmMicroLabel(8.5, color: GMTheme.textFaint)
                         }
                     } else {
-                        HStack(spacing: 8) {
+                        HStack(spacing: 9) {
                             ShuttlePulsingDot(color: stale ? GMTheme.warning : GMTheme.accent)
                             Text("shuttle_on_the_way")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundStyle(GMTheme.accent)
+                                .gmMicroLabel(10, color: GMTheme.accentBright)
                         }
                     }
                     if stale {
                         Label("shuttle_signal_weak", systemImage: "wifi.exclamationmark")
-                            .font(GMTheme.bodyFont(12))
-                            .foregroundStyle(GMTheme.warning)
+                            .gmMicroLabel(8.5, color: GMTheme.warning)
                     }
                 }
             } else {
                 // All shared positions are older than 3 minutes — never show an ETA.
                 Label("shuttle_location_unavailable", systemImage: "exclamationmark.circle")
-                    .font(GMTheme.bodyFont(13))
-                    .foregroundStyle(GMTheme.textSecondary)
+                    .gmMicroLabel(9, color: GMTheme.textMuted)
             }
         }
     }
@@ -431,39 +455,49 @@ struct ReservationHomeView: View {
                             if !stale {
                                 ShuttleLivePulse()
                             }
-                            Circle()
+                            RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
                                 .fill(stale ? Color.gray : GMTheme.accent)
+                            RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
+                                .strokeBorder(.white.opacity(0.5), lineWidth: 1)
                             Image(systemName: "bus.fill")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.white)
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(Color(hex: 0x08120C))
                         }
-                        .frame(width: 34, height: 34)
-                        .shadow(color: .black.opacity(0.25), radius: 3, y: 1)
+                        .frame(width: 30, height: 30)
                     }
                 }
             }
             if let mp = tracking.meetingPoint {
                 Annotation(tracking.meetingLabel ?? String(localized: "shuttle_meeting_point"), coordinate: mp) {
-                    Image(systemName: "flag.circle.fill")
-                        .font(.system(size: 26))
-                        .foregroundStyle(.white, GMTheme.danger)
-                        .shadow(color: .black.opacity(0.25), radius: 3, y: 1)
+                    ZStack {
+                        RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
+                            .fill(GMTheme.danger)
+                        RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
+                            .strokeBorder(.white.opacity(0.5), lineWidth: 1)
+                        Image(systemName: "flag.fill")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                    .frame(width: 26, height: 26)
                 }
             }
         }
-        .frame(height: 180)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .frame(height: 172)
+        .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
+        .gmBorder(GMTheme.borderStrong, radius: GMTheme.radiusTight)
         // The mini-map is non-interactive (interactionModes: []); a tap opens the
-        // full-screen, pannable map instead of fighting the card's scroll view.
+        // full-screen, pannable map instead of fighting the panel's scroll view.
         .overlay(alignment: .topTrailing) {
             Image(systemName: "arrow.up.left.and.arrow.down.right")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(.white)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(GMTheme.textPrimary)
+                .padding(6)
+                .background(GMTheme.background.opacity(0.85))
+                .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
+                .gmBorder(GMTheme.borderStrong, radius: GMTheme.radiusTight)
                 .padding(7)
-                .background(.black.opacity(0.35), in: Circle())
-                .padding(8)
         }
-        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
         .onTapGesture {
             Haptics.light()
             showShuttleFullScreen = true
@@ -487,8 +521,7 @@ struct ReservationHomeView: View {
                 let age = best.secondsSinceUpdate(asOf: context.date)
                 Text(String(format: String(localized: "shuttle_last_update"),
                             ShuttleDriverLocation.ageText(seconds: age)))
-                    .font(GMTheme.bodyFont(12))
-                    .foregroundStyle(GMTheme.warning)
+                    .gmMicroLabel(8.5, color: GMTheme.warning)
             }
         }
     }
@@ -588,33 +621,47 @@ struct ReservationHomeView: View {
                 shuttleSaving = false
             }
         } label: {
-            Text(titleKey)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(isSelected ? .white : GMTheme.textPrimary)
-                .frame(maxWidth: .infinity)
-                .frame(height: 46)
-                .background(isSelected ? GMTheme.accent : GMTheme.background)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            HStack(spacing: 7) {
+                if shuttleSaving && isSelected {
+                    ProgressView()
+                        .controlSize(.mini)
+                        .tint(GMTheme.accentBright)
+                } else {
+                    GMStatusDot(
+                        color: isSelected ? GMTheme.accent : GMTheme.textFaint,
+                        size: 5
+                    )
+                }
+                Text(titleKey)
+                    .font(.system(size: 12, weight: .bold))
+                    .tracking(1.0)
+                    .textCase(.uppercase)
+                    .foregroundStyle(isSelected ? GMTheme.accentBright : GMTheme.textSecondary)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 42)
+            .background(isSelected ? GMTheme.accentWash : GMTheme.surfaceInset)
+            .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
+            .gmBorder(
+                isSelected ? GMTheme.accent.opacity(0.55) : GMTheme.border,
+                radius: GMTheme.radiusTight
+            )
         }
         .buttonStyle(.plain)
+        .animation(.easeOut(duration: 0.15), value: isSelected)
     }
 
     // MARK: - Assistance calls
 
-    private var assistanceCard: some View {
-        GMCard {
-            Text("need_help")
-                .font(GMTheme.labelFont(13))
-                .foregroundStyle(GMTheme.textSecondary)
-                .textCase(.uppercase)
-
+    private var assistancePanel: some View {
+        GMPanel("need_help", spacing: 9) {
             Button {
                 Haptics.light()
                 call(number: reservation.roadsidePhone)
             } label: {
                 Label("roadside_assistance", systemImage: "wrench.and.screwdriver.fill")
             }
-            .buttonStyle(GMPrimaryButtonStyle(color: GMTheme.danger))
+            .buttonStyle(GMGhostButtonStyle(color: GMTheme.danger))
 
             if let office = reservation.officePhone {
                 Button {
@@ -637,30 +684,27 @@ struct ReservationHomeView: View {
 
     // MARK: - Submissions
 
-    private var submissionsCard: some View {
+    private var submissionsPanel: some View {
         Group {
             if let records = recordService?.records, !records.isEmpty {
-                GMCard {
-                    HStack {
-                        Text("my_submissions")
-                            .font(GMTheme.labelFont(13))
-                            .foregroundStyle(GMTheme.textSecondary)
-                            .textCase(.uppercase)
-                        Spacer()
-                        Text("sent_to_erp")
-                            .font(GMTheme.labelFont(11))
-                            .foregroundStyle(GMTheme.accent)
-                    }
-                    ForEach(records) { record in
+                GMPanel("my_submissions", spacing: 0) {
+                    ForEach(Array(records.enumerated()), id: \.element.id) { index, record in
                         SubmissionRow(record: record) { startIndex in
                             gallerySession = RemotePhotoGallerySession(
                                 urls: record.photos,
                                 startIndex: startIndex
                             )
                         }
-                        if record.id != records.last?.id {
-                            Divider()
+                        if index < records.count - 1 {
+                            Rectangle()
+                                .fill(GMTheme.divider)
+                                .frame(height: GMTheme.hairline)
                         }
+                    }
+                } accessory: {
+                    HStack(spacing: 5) {
+                        GMStatusDot(color: GMTheme.accent, size: 5)
+                        Text("sent_to_erp").gmMicroLabel(8.5, color: GMTheme.accentBright)
                     }
                 }
             }
@@ -678,9 +722,10 @@ struct ShuttlePulsingDot: View {
     @State private var pulsing = false
 
     var body: some View {
-        Circle()
+        RoundedRectangle(cornerRadius: 1, style: .continuous)
             .fill(color)
-            .frame(width: 9, height: 9)
+            .frame(width: 7, height: 7)
+            .shadow(color: color.opacity(0.9), radius: 3)
             .opacity(pulsing ? 0.35 : 1)
             .animation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true), value: pulsing)
             .onAppear { pulsing = true }
@@ -694,11 +739,11 @@ struct ShuttleLivePulse: View {
     @State private var animating = false
 
     var body: some View {
-        Circle()
-            .fill(GMTheme.accent.opacity(0.35))
-            .frame(width: 34, height: 34)
-            .scaleEffect(animating ? 1.9 : 0.9)
-            .opacity(animating ? 0 : 0.6)
+        RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous)
+            .stroke(GMTheme.accent.opacity(0.55), lineWidth: 1.5)
+            .frame(width: 30, height: 30)
+            .scaleEffect(animating ? 2.0 : 0.95)
+            .opacity(animating ? 0 : 0.7)
             .animation(.easeOut(duration: 1.8).repeatForever(autoreverses: false), value: animating)
             .onAppear { animating = true }
     }
@@ -730,36 +775,49 @@ struct SubmissionRow: View {
         }
     }
 
+    private var isSeen: Bool { record.status == "seen" }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 12) {
-                GMIconBadge(systemName: icon, size: 32)
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(spacing: 11) {
+                GMIconFrame(systemName: icon, size: 28)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(titleKey)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.system(size: 11, weight: .semibold))
+                        .tracking(0.8)
+                        .textCase(.uppercase)
+                        .foregroundStyle(GMTheme.textPrimary)
                     Text(record.createdAt.formatted(date: .abbreviated, time: .shortened))
-                        .font(GMTheme.bodyFont(12))
-                        .foregroundStyle(GMTheme.textSecondary)
+                        .font(GMTheme.mono(10))
+                        .foregroundStyle(GMTheme.textFaint)
                 }
-                Spacer()
-                Image(systemName: record.status == "seen" ? "checkmark.circle.fill" : "paperplane.circle.fill")
-                    .font(.system(size: 16))
-                    .foregroundStyle(record.status == "seen" ? GMTheme.accent : GMTheme.textSecondary)
+                Spacer(minLength: 8)
+                HStack(spacing: 5) {
+                    GMStatusDot(color: isSeen ? GMTheme.accent : GMTheme.textFaint, size: 5)
+                    Text(verbatim: isSeen ? "SEEN" : "SENT")
+                        .gmMicroLabel(8, color: isSeen ? GMTheme.accentBright : GMTheme.textMuted)
+                }
             }
 
             if record.type == .note, let note = record.note, !note.isEmpty {
-                Text(note)
-                    .font(GMTheme.bodyFont(14))
-                    .foregroundStyle(GMTheme.textPrimary)
-                    .padding(10)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(GMTheme.background)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                HStack(alignment: .top, spacing: 9) {
+                    Rectangle()
+                        .fill(GMTheme.accent.opacity(0.55))
+                        .frame(width: 2)
+                    Text(note)
+                        .font(GMTheme.ui(12.5))
+                        .foregroundStyle(GMTheme.textSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(9)
+                .background(GMTheme.surfaceInset)
+                .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
             }
 
             if !record.photos.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 7) {
                         ForEach(Array(record.photos.enumerated()), id: \.offset) { index, url in
                             Button {
                                 onTapPhoto(index)
@@ -770,14 +828,15 @@ struct SubmissionRow: View {
                                         image.resizable().scaledToFill()
                                     case .failure:
                                         Image(systemName: "photo")
-                                            .foregroundStyle(GMTheme.textSecondary)
+                                            .foregroundStyle(GMTheme.textFaint)
                                     default:
-                                        ProgressView()
+                                        ProgressView().tint(GMTheme.accent)
                                     }
                                 }
-                                .frame(width: 72, height: 72)
-                                .background(GMTheme.background)
-                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                .frame(width: 66, height: 66)
+                                .background(GMTheme.surfaceInset)
+                                .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
+                                .gmBorder(GMTheme.border, radius: GMTheme.radiusTight)
                             }
                             .buttonStyle(.plain)
                         }
@@ -785,7 +844,7 @@ struct SubmissionRow: View {
                 }
             }
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, 10)
     }
 }
 

@@ -9,6 +9,9 @@
 //  automatic the instant both fields become valid — no extra tap needed
 //  on the happy path, the button stays only as a manual fallback.
 //
+//  Presented as a terminal: masthead, link status, then a single
+//  authentication panel.
+//
 
 import SwiftUI
 import UIKit
@@ -40,121 +43,89 @@ struct WelcomeView: View {
 
     var body: some View {
         ZStack {
-            GMTheme.background.ignoresSafeArea()
+            GMCanvas()
             ScrollView {
-                VStack(spacing: 20) {
-                    header
-                    promoBanner
-                    inputCard
+                VStack(spacing: 14) {
+                    masthead
+                    linkStatus
+                    authPanel
+                    offerPanel
+                    footerMark
                     Spacer(minLength: 0)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 40)
+                .padding(.horizontal, 16)
+                .padding(.top, 36)
+                .padding(.bottom, 24)
             }
             .scrollBounceBehavior(.basedOnSize)
         }
         .onTapGesture { focusedField = nil }
     }
 
-    // MARK: - Header
+    // MARK: - Masthead
 
-    private var header: some View {
-        VStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(GMTheme.accent.opacity(0.14))
-                    .frame(width: 84, height: 84)
-                Image(systemName: "car.fill")
-                    .font(.system(size: 36, weight: .semibold))
-                    .foregroundStyle(GMTheme.accent)
+    private var masthead: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Rectangle()
+                .fill(GMTheme.accent)
+                .frame(width: 3, height: 44)
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text(verbatim: "GM ASSISTANT")
+                    .font(.system(size: 25, weight: .bold))
+                    .tracking(1.6)
+                    .foregroundStyle(GMTheme.textPrimary)
+
+                Text("welcome_subtitle")
+                    .font(GMTheme.ui(12.5))
+                    .foregroundStyle(GMTheme.textMuted)
+                    .lineSpacing(1)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            Text("GM Assistant")
-                .font(GMTheme.titleFont(28))
-                .foregroundStyle(GMTheme.textPrimary)
-            Text("welcome_subtitle")
-                .font(GMTheme.bodyFont(15))
-                .foregroundStyle(GMTheme.textSecondary)
-                .multilineTextAlignment(.center)
+
+            Spacer(minLength: 0)
+
+            Image(systemName: "car.side.fill")
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundStyle(GMTheme.accent.opacity(0.55))
+                .padding(.top, 2)
         }
+        .padding(.bottom, 2)
     }
 
-    // MARK: - Promo banner
+    // MARK: - Link status strip
 
-    private var promoBanner: some View {
-        Button {
-            copyPromoCode()
-        } label: {
-            ZStack {
-                GMTheme.heroGradient
-                Circle()
-                    .fill(.white.opacity(0.08))
-                    .frame(width: 160, height: 160)
-                    .offset(x: 110, y: -40)
-                Circle()
-                    .fill(.white.opacity(0.06))
-                    .frame(width: 100, height: 100)
-                    .offset(x: -120, y: 40)
+    private var linkStatus: some View {
+        HStack(spacing: 10) {
+            GMStatusDot(color: GMTheme.accent, size: 6, pulsing: true)
+            Text(verbatim: "SECURE LINK")
+                .gmMicroLabel(9, color: GMTheme.textSecondary)
 
-                HStack(spacing: 14) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 26, weight: .bold))
-                        .foregroundStyle(.white)
+            Rectangle()
+                .fill(GMTheme.border)
+                .frame(width: GMTheme.hairline, height: 11)
 
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("promo_title")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(.white)
-                        Text("promo_subtitle")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.85))
-                    }
+            Text(verbatim: "ZRH · CH")
+                .font(GMTheme.mono(10, .semibold))
+                .foregroundStyle(GMTheme.textMuted)
 
-                    Spacer(minLength: 8)
+            Spacer(minLength: 0)
 
-                    VStack(spacing: 2) {
-                        Text(promoCopied ? "copied" : "ZURICH23")
-                            .font(.system(size: 15, weight: .heavy, design: .monospaced))
-                            .foregroundStyle(GMTheme.accent)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 7)
-                            .background(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-                        if !promoCopied {
-                            Text("tap_to_copy")
-                                .font(.system(size: 9, weight: .semibold))
-                                .foregroundStyle(.white.opacity(0.75))
-                        }
-                    }
-                }
-                .padding(16)
-            }
+            Text(verbatim: "v1.0")
+                .font(GMTheme.mono(10))
+                .foregroundStyle(GMTheme.textFaint)
         }
-        .buttonStyle(.plain)
-        .frame(height: 92)
-        .clipShape(RoundedRectangle(cornerRadius: GMTheme.cardCornerRadius, style: .continuous))
-        .shadow(color: GMTheme.accent.opacity(0.35), radius: 14, x: 0, y: 8)
-        .scaleEffect(promoCopied ? 0.98 : 1)
-        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: promoCopied)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+        .background(GMTheme.surface.opacity(0.75))
+        .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
+        .gmBorder()
     }
 
-    private func copyPromoCode() {
-        Haptics.light()
-        UIPasteboard.general.string = "ZURICH23"
-        withAnimation { promoCopied = true }
-        Task {
-            try? await Task.sleep(nanoseconds: 900_000_000)
-            if let url = URL(string: "https://greenmotion.com/de/locations/switzerland/zurich-airport") {
-                _ = await UIApplication.shared.open(url)
-            }
-            try? await Task.sleep(nanoseconds: 700_000_000)
-            withAnimation { promoCopied = false }
-        }
-    }
+    // MARK: - Authentication panel
 
-    // MARK: - Input card
-
-    private var inputCard: some View {
-        GMCard {
+    private var authPanel: some View {
+        GMPanel("identify_label", spacing: 14) {
             entryField(
                 labelKey: "res_code_label",
                 placeholder: "RES-12345",
@@ -178,62 +149,91 @@ struct WelcomeView: View {
             ) { newValue in
                 String(newValue.uppercased().filter { $0.isLetter || $0.isNumber }.prefix(8))
             }
+
             Text("plate_suffix_hint")
-                .font(GMTheme.bodyFont(12))
-                .foregroundStyle(GMTheme.textSecondary)
+                .font(GMTheme.ui(11.5))
+                .foregroundStyle(GMTheme.textMuted)
+                .fixedSize(horizontal: false, vertical: true)
 
             if appState.isResolving {
-                HStack(spacing: 8) {
-                    ProgressView().controlSize(.small)
+                HStack(spacing: 9) {
+                    ProgressView()
+                        .controlSize(.mini)
+                        .tint(GMTheme.accent)
                     Text("looking_up")
-                        .font(GMTheme.bodyFont(13))
-                        .foregroundStyle(GMTheme.textSecondary)
+                        .gmMicroLabel(9.5, color: GMTheme.accentBright)
                 }
-                .padding(.top, 2)
             }
 
             if let error = appState.lookupError {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label {
-                        Text(LocalizedStringKey(error.messageKey))
-                    } icon: {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                    }
-                    .font(GMTheme.bodyFont(14))
-                    .foregroundStyle(GMTheme.danger)
-
-                    if error == .tooManyAttempts {
-                        Button {
-                            Haptics.light()
-                            callRoadside()
-                        } label: {
-                            Label("roadside_assistance", systemImage: "wrench.and.screwdriver.fill")
-                                .font(.system(size: 14, weight: .semibold))
-                        }
-                    }
-                }
-                .padding(.top, 4)
+                errorBlock(error)
             }
 
             Button {
                 submit(auto: false)
             } label: {
                 if appState.isResolving {
-                    ProgressView().tint(.white)
+                    ProgressView().tint(Color(hex: 0x08120C))
                 } else {
                     Text("find_reservation")
                 }
             }
             .buttonStyle(GMPrimaryButtonStyle())
             .disabled(!canSubmit)
-            .opacity(canSubmit ? 1 : 0.5)
-            .padding(.top, 4)
 
             Text("res_code_hint")
-                .font(GMTheme.bodyFont(13))
-                .foregroundStyle(GMTheme.textSecondary)
+                .font(GMTheme.ui(11.5))
+                .foregroundStyle(GMTheme.textFaint)
+                .fixedSize(horizontal: false, vertical: true)
+        } accessory: {
+            HStack(spacing: 5) {
+                GMStatusDot(
+                    color: canSubmit ? GMTheme.accent : GMTheme.textFaint,
+                    size: 5
+                )
+                Text(verbatim: canSubmit ? "READY" : "AWAITING INPUT")
+                    .gmMicroLabel(8.5, color: canSubmit ? GMTheme.accentBright : GMTheme.textFaint)
+            }
+            .animation(.easeOut(duration: 0.15), value: canSubmit)
         }
     }
+
+    @ViewBuilder
+    private func errorBlock(_ error: AppState.LookupError) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 9) {
+                Rectangle()
+                    .fill(GMTheme.danger)
+                    .frame(width: 2)
+                    .frame(maxHeight: .infinity)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(verbatim: "FAULT")
+                        .gmMicroLabel(8.5, color: GMTheme.danger)
+                    Text(LocalizedStringKey(error.messageKey))
+                        .font(GMTheme.ui(12.5))
+                        .foregroundStyle(GMTheme.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .fixedSize(horizontal: false, vertical: true)
+
+            if error == .tooManyAttempts {
+                Button {
+                    Haptics.light()
+                    callRoadside()
+                } label: {
+                    Label("roadside_assistance", systemImage: "wrench.and.screwdriver.fill")
+                }
+                .buttonStyle(GMGhostButtonStyle(color: GMTheme.danger, height: 40))
+            }
+        }
+        .padding(11)
+        .background(GMTheme.danger.opacity(0.07))
+        .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
+        .gmBorder(GMTheme.danger.opacity(0.28), radius: GMTheme.radiusTight)
+    }
+
+    // MARK: - Entry field
 
     @ViewBuilder
     private func entryField(
@@ -246,50 +246,142 @@ struct WelcomeView: View {
         nextField: Field?,
         sanitize: @escaping (String) -> String
     ) -> some View {
-        HStack {
-            Text(labelKey)
-                .font(GMTheme.labelFont(13))
-                .foregroundStyle(GMTheme.textSecondary)
-                .textCase(.uppercase)
-            if isValid {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(GMTheme.accent)
-                    .transition(.scale.combined(with: .opacity))
-            }
-        }
-        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isValid)
-        .padding(.top, field == .plate ? 6 : 0)
+        let focused = focusedField == field
+        let railColor = isValid ? GMTheme.accent
+            : (focused ? GMTheme.accentBright.opacity(0.7) : GMTheme.border)
 
-        TextField(placeholder, text: text)
-            .font(.system(size: 24, weight: .bold, design: .monospaced))
-            .keyboardType(keyboard)
-            .textInputAutocapitalization(.characters)
-            .autocorrectionDisabled()
-            .focused($focusedField, equals: field)
-            .submitLabel(nextField == nil ? .go : .next)
-            .onSubmit {
-                if let nextField {
-                    focusedField = nextField
-                } else {
-                    submit(auto: false)
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 6) {
+                Text(labelKey).gmMicroLabel(9.5)
+                Spacer(minLength: 8)
+                if isValid {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 8, weight: .black))
+                        Text(verbatim: "OK")
+                            .gmMicroLabel(8.5, color: GMTheme.accentBright)
+                    }
+                    .foregroundStyle(GMTheme.accentBright)
+                    .transition(.opacity)
                 }
             }
-            .padding(14)
-            .background(GMTheme.background)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(isValid ? GMTheme.accent.opacity(0.5) : .clear, lineWidth: 1.5)
+            .animation(.easeOut(duration: 0.18), value: isValid)
+
+            HStack(spacing: 0) {
+                Rectangle()
+                    .fill(railColor)
+                    .frame(width: 2)
+
+                TextField("", text: text, prompt:
+                    Text(placeholder)
+                        .font(GMTheme.mono(19, .medium))
+                        .foregroundColor(GMTheme.textFaint)
+                )
+                .font(GMTheme.mono(19, .semibold))
+                .tracking(1.2)
+                .foregroundStyle(isValid ? GMTheme.accentBright : GMTheme.textPrimary)
+                .keyboardType(keyboard)
+                .textInputAutocapitalization(.characters)
+                .autocorrectionDisabled()
+                .focused($focusedField, equals: field)
+                .submitLabel(nextField == nil ? .go : .next)
+                .onSubmit {
+                    if let nextField {
+                        focusedField = nextField
+                    } else {
+                        submit(auto: false)
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 13)
+                .onChange(of: text.wrappedValue) { _, newValue in
+                    let filtered = sanitize(newValue)
+                    if filtered != newValue {
+                        text.wrappedValue = filtered
+                    } else {
+                        scheduleAutoSubmitIfReady()
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(GMTheme.surfaceInset)
+            .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
+            .gmBorder(
+                focused ? GMTheme.accent.opacity(0.55) : GMTheme.border,
+                radius: GMTheme.radiusTight
             )
-            .onChange(of: text.wrappedValue) { _, newValue in
-                let filtered = sanitize(newValue)
-                if filtered != newValue {
-                    text.wrappedValue = filtered
-                } else {
-                    scheduleAutoSubmitIfReady()
+            .animation(.easeOut(duration: 0.15), value: focused)
+            .animation(.easeOut(duration: 0.15), value: isValid)
+        }
+    }
+
+    // MARK: - Offer
+
+    private var offerPanel: some View {
+        Button {
+            copyPromoCode()
+        } label: {
+            HStack(spacing: 12) {
+                Rectangle()
+                    .fill(GMTheme.accent)
+                    .frame(width: 2, height: 34)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("promo_title")
+                        .gmMicroLabel(9.5, color: GMTheme.accentBright)
+                    Text("promo_subtitle")
+                        .font(GMTheme.ui(11.5))
+                        .foregroundStyle(GMTheme.textMuted)
+                        .lineLimit(1)
+                }
+
+                Spacer(minLength: 8)
+
+                VStack(alignment: .trailing, spacing: 3) {
+                    GMChip(text: promoCopied ? String(localized: "copied") : "ZURICH23")
+                    if !promoCopied {
+                        Text("tap_to_copy")
+                            .gmMicroLabel(8, color: GMTheme.textFaint)
+                    }
                 }
             }
+            .padding(12)
+            .frame(maxWidth: .infinity)
+            .background(GMTheme.surface)
+            .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
+            .gmBorder(promoCopied ? GMTheme.accent.opacity(0.5) : GMTheme.border)
+        }
+        .buttonStyle(.plain)
+        .animation(.easeOut(duration: 0.2), value: promoCopied)
+    }
+
+    private var footerMark: some View {
+        HStack(spacing: 6) {
+            Rectangle()
+                .fill(GMTheme.border)
+                .frame(height: GMTheme.hairline)
+            Text(verbatim: "GREEN MOTION · ZÜRICH")
+                .gmMicroLabel(8, color: GMTheme.textFaint)
+                .fixedSize()
+            Rectangle()
+                .fill(GMTheme.border)
+                .frame(height: GMTheme.hairline)
+        }
+        .padding(.top, 6)
+    }
+
+    private func copyPromoCode() {
+        Haptics.light()
+        UIPasteboard.general.string = "ZURICH23"
+        withAnimation { promoCopied = true }
+        Task {
+            try? await Task.sleep(nanoseconds: 900_000_000)
+            if let url = URL(string: "https://greenmotion.com/de/locations/switzerland/zurich-airport") {
+                _ = await UIApplication.shared.open(url)
+            }
+            try? await Task.sleep(nanoseconds: 700_000_000)
+            withAnimation { promoCopied = false }
+        }
     }
 
     // MARK: - Submit
@@ -333,4 +425,5 @@ struct WelcomeView: View {
 #Preview {
     WelcomeView()
         .environment(AppState())
+        .preferredColorScheme(.dark)
 }
