@@ -49,13 +49,13 @@ struct ReservationHomeView: View {
                 GMCanvas()
                 ScrollView {
                     VStack(spacing: 14) {
+                        statusHeader
+                        connectionNote
                         vehiclePanel
                         reservationPanel
-                        photoActionsPanel
-                        notePanel
-                        shuttlePanel
-                        assistancePanel
-                        submissionsPanel
+                        ForEach(sectionOrder) { section in
+                            sectionView(section)
+                        }
                     }
                     .padding(.horizontal, 18)
                     .padding(.vertical, 14)
@@ -126,6 +126,126 @@ struct ReservationHomeView: View {
         }
     }
 
+    // MARK: - Rental status
+
+    private var status: RentalStatus {
+        RentalStatus.make(reservation: reservation)
+    }
+
+    /// Leads the screen with where the customer actually is in the rental.
+    /// Ticks once a minute so the countdown stays honest without the view
+    /// having to be re-entered.
+    @ViewBuilder
+    private var statusHeader: some View {
+        TimelineView(.periodic(from: .now, by: 60)) { context in
+            let status = RentalStatus.make(reservation: reservation, now: context.date)
+            if status.phase != .unknown {
+                HStack(spacing: 10) {
+                    GMStatusDot(
+                        color: statusTint(status.phase),
+                        size: 7,
+                        pulsing: status.phase == .dueSoon || status.phase == .overdue
+                    )
+                    Text(statusLabel(status.phase))
+                        .font(GMTheme.ui(13.5, .semibold))
+                        .foregroundStyle(GMTheme.textPrimary)
+                    Spacer(minLength: 8)
+                    if let reference = status.reference {
+                        Text(reference.formatted(.relative(presentation: .named)))
+                            .font(GMTheme.ui(13))
+                            .foregroundStyle(statusTint(status.phase))
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .background(statusTint(status.phase).opacity(0.09))
+                .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
+                .gmBorder(statusTint(status.phase).opacity(0.25))
+            }
+        }
+    }
+
+    private func statusTint(_ phase: RentalStatus.Phase) -> Color {
+        switch phase {
+        case .beforePickup, .active: return GMTheme.accent
+        case .dueSoon: return GMTheme.warning
+        case .overdue: return GMTheme.danger
+        case .unknown: return GMTheme.textMuted
+        }
+    }
+
+    private func statusLabel(_ phase: RentalStatus.Phase) -> LocalizedStringKey {
+        switch phase {
+        case .beforePickup: return "rental_before_pickup"
+        case .active: return "rental_active"
+        case .dueSoon: return "rental_due_soon"
+        case .overdue: return "rental_overdue"
+        case .unknown: return ""
+        }
+    }
+
+    /// Surfaced when the submissions listener drops — previously this failed
+    /// silently and the list just stopped updating.
+    @ViewBuilder
+    private var connectionNote: some View {
+        if recordService?.listenerFailed == true {
+            HStack(spacing: 9) {
+                Image(systemName: "wifi.exclamationmark")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(GMTheme.warning)
+                Text("live_updates_interrupted")
+                    .font(GMTheme.ui(12.5))
+                    .foregroundStyle(GMTheme.textSecondary)
+                Spacer(minLength: 8)
+                Button {
+                    Haptics.light()
+                    recordService?.retryListener()
+                } label: {
+                    Text("retry")
+                        .font(GMTheme.ui(12.5, .semibold))
+                        .foregroundStyle(GMTheme.accentText)
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+            .background(GMTheme.warning.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: GMTheme.radius, style: .continuous))
+            .gmBorder(GMTheme.warning.opacity(0.25))
+        }
+    }
+
+    // MARK: - Section ordering
+
+    private enum HomeSection: String, Identifiable {
+        case photos, note, shuttle, assistance, submissions
+        var id: String { rawValue }
+    }
+
+    /// The panels below the reservation reorder with the rental phase, so the
+    /// next thing the customer needs sits nearest the top: the shuttle before
+    /// pickup, the return photos once the car is due back.
+    private var sectionOrder: [HomeSection] {
+        switch status.phase {
+        case .beforePickup:
+            return [.shuttle, .photos, .note, .assistance, .submissions]
+        case .dueSoon, .overdue:
+            return [.photos, .note, .assistance, .shuttle, .submissions]
+        case .active, .unknown:
+            return [.photos, .note, .shuttle, .assistance, .submissions]
+        }
+    }
+
+    @ViewBuilder
+    private func sectionView(_ section: HomeSection) -> some View {
+        switch section {
+        case .photos: photoActionsPanel
+        case .note: notePanel
+        case .shuttle: shuttlePanel
+        case .assistance: assistancePanel
+        case .submissions: submissionsPanel
+        }
+    }
+
     // MARK: - Vehicle & reservation
 
     private var vehiclePanel: some View {
@@ -190,18 +310,25 @@ struct ReservationHomeView: View {
 
     // MARK: - Photos
 
+    /// The two photo actions swap places with the rental phase: check-out
+    /// leads while the car is still to be collected, return leads once it is
+    /// due back. The leading one is tinted so the next step is obvious
+    /// without reading either label.
     private var photoActionsPanel: some View {
-        GMPanel("add_photos", spacing: 9) {
-            photoActionButton(
-                type: .checkoutPhotos,
-                titleKey: "checkout_photos",
-                icon: "arrow.right.circle.fill"
-            )
-            photoActionButton(
-                type: .returnPhotos,
-                titleKey: "return_photos",
-                icon: "arrow.uturn.backward.circle.fill"
-            )
+        let checkout = (CustomerRecordType.checkoutPhotos, LocalizedStringKey("checkout_photos"), "arrow.right.circle.fill")
+        let returning = (CustomerRecordType.returnPhotos, LocalizedStringKey("return_photos"), "arrow.uturn.backward.circle.fill")
+        let ordered = status.isReturnFocused ? [returning, checkout] : [checkout, returning]
+        let leadIsEmphasized = status.phase != .active && status.phase != .unknown
+
+        return GMPanel("add_photos", spacing: 9) {
+            ForEach(Array(ordered.enumerated()), id: \.element.0) { index, entry in
+                photoActionButton(
+                    type: entry.0,
+                    titleKey: entry.1,
+                    icon: entry.2,
+                    emphasized: index == 0 && leadIsEmphasized
+                )
+            }
         }
     }
 
@@ -209,26 +336,29 @@ struct ReservationHomeView: View {
         type: CustomerRecordType,
         titleKey: LocalizedStringKey,
         icon: String,
-        tint: Color = GMTheme.accent
+        emphasized: Bool = false
     ) -> some View {
         Button {
             Haptics.light()
             photoSheetType = type
         } label: {
             HStack(spacing: 12) {
-                GMIconFrame(systemName: icon, tint: tint, size: 34)
+                GMIconFrame(systemName: icon, tint: GMTheme.accent, size: 34)
                 Text(titleKey)
-                    .font(GMTheme.ui(15, .medium))
+                    .font(GMTheme.ui(15, emphasized ? .semibold : .medium))
                     .foregroundStyle(GMTheme.textPrimary)
                 Spacer(minLength: 8)
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(GMTheme.textFaint)
+                    .foregroundStyle(emphasized ? GMTheme.accent : GMTheme.textFaint)
             }
             .padding(12)
-            .background(GMTheme.surfaceInset)
+            .background(emphasized ? GMTheme.accentSoft : GMTheme.surfaceInset)
             .clipShape(RoundedRectangle(cornerRadius: GMTheme.radiusTight, style: .continuous))
-            .gmBorder(GMTheme.border, radius: GMTheme.radiusTight)
+            .gmBorder(
+                emphasized ? GMTheme.accent.opacity(0.4) : GMTheme.border,
+                radius: GMTheme.radiusTight
+            )
         }
         .buttonStyle(.plain)
     }

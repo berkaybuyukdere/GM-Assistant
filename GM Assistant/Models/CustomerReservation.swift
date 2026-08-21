@@ -76,7 +76,7 @@ struct CustomerReservation: Codable, Equatable {
         dropOffBranch = str("dropOffBranch")
         vehicleMake = str("vehicleMake")
         vehicleModel = str("vehicleModel")
-        roadsidePhone = str("roadsidePhone") ?? "+41765373407"
+        roadsidePhone = str("roadsidePhone") ?? GMConfig.fallbackRoadsidePhone
         officePhone = str("officePhone")
         if let mp = callableData["shuttleMeetingPoint"] as? [String: Any],
            let lat = (mp["lat"] as? NSNumber)?.doubleValue,

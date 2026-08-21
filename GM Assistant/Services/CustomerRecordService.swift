@@ -18,6 +18,11 @@ import FirebaseFirestore
 final class CustomerRecordService {
     private(set) var records: [CustomerRecord] = []
     private(set) var shuttleRequested: Bool?
+    /// True once the snapshot listener has reported an error. Previously this
+    /// failure was swallowed by a `print`, so the submissions list silently
+    /// stopped updating with nothing on screen to say so — the shuttle
+    /// tracker already surfaced its equivalent, and now both do.
+    private(set) var listenerFailed = false
 
     private var reservation: CustomerReservation
     private var listener: ListenerRegistration?
@@ -47,6 +52,7 @@ final class CustomerRecordService {
 
     func start() {
         guard listener == nil, let uid else { return }
+        listenerFailed = false
         listener = collection
             .whereField("customerUid", isEqualTo: uid)
             .order(by: "createdAt", descending: true)
@@ -54,12 +60,14 @@ final class CustomerRecordService {
             .addSnapshotListener { [weak self] snapshot, error in
                 guard let self else { return }
                 if let error {
-                    print("customerRecords listener: \(error.localizedDescription)")
+                    GMLog.failure(GMLog.records, "customerRecords listener", error: error)
+                    Task { @MainActor in self.listenerFailed = true }
                     return
                 }
                 let fetched: [CustomerRecord] = (snapshot?.documents ?? [])
                     .compactMap { try? $0.data(as: CustomerRecord.self) }
                 Task { @MainActor in
+                    self.listenerFailed = false
                     self.records = fetched.filter { $0.type != .shuttleRequest }
                     self.shuttleRequested = fetched
                         .first { $0.type == .shuttleRequest }?
@@ -68,11 +76,20 @@ final class CustomerRecordService {
             }
     }
 
+    /// Re-attaches the listener after a failure, so a dropped connection can
+    /// be recovered without ending the session.
+    func retryListener() {
+        listener?.remove()
+        listener = nil
+        start()
+    }
+
     func stop() {
         listener?.remove()
         listener = nil
         records = []
         shuttleRequested = nil
+        listenerFailed = false
     }
 
     /// Creates a photo submission record (check-out / return / damage).

@@ -3,18 +3,34 @@
 //  GM Assistant
 //
 //  Uploads customer photos to Storage at
-//  customer_records/{franchiseId}/{resKodu}/{uid}/{uuid}.jpg
+//  customer_records/{franchiseId}/{resKodu}/{uid}/{fileName}
 //  (path enforced by storage.rules) and returns download URLs.
 //
 //  Uploads run concurrently (bounded) instead of one-at-a-time — with
 //  several photos, sequential upload was the main source of the long
 //  wait customers felt in the photo screen.
 //
+//  Each item may carry a `tag` (see `PhotoAngle.fileTag`) which is written
+//  into the file name, so a guided walk-around arrives at the backend
+//  self-describing without changing the document shape.
+//
 
 import Foundation
 import UIKit
 import FirebaseAuth
 import FirebaseStorage
+
+/// One photo queued for upload, optionally labelled with the shot it fills.
+struct PhotoUploadItem {
+    let image: UIImage
+    /// File-name tag such as `01-front`; `nil` for free-form extras.
+    var tag: String?
+
+    init(image: UIImage, tag: String? = nil) {
+        self.image = image
+        self.tag = tag
+    }
+}
 
 enum PhotoUploadService {
     enum UploadError: Error {
@@ -24,17 +40,17 @@ enum PhotoUploadService {
 
     private static let maxConcurrentUploads = 4
 
-    /// Uploads images with bounded concurrency, reporting 0…1 progress as
-    /// each finishes. Result order matches the input `images` order.
+    /// Uploads items with bounded concurrency, reporting 0…1 progress as
+    /// each finishes. Result order matches the input order.
     static func upload(
-        images: [UIImage],
+        items: [PhotoUploadItem],
         reservation: CustomerReservation,
         progress: @escaping @MainActor (Double) -> Void
     ) async throws -> [String] {
         guard let uid = Auth.auth().currentUser?.uid else {
             throw UploadError.notSignedIn
         }
-        let total = images.count
+        let total = items.count
         guard total > 0 else { return [] }
 
         let safeRes = reservation.resKodu
@@ -55,9 +71,9 @@ enum PhotoUploadService {
                 guard nextIndex < total else { return }
                 let index = nextIndex
                 nextIndex += 1
-                let image = images[index]
+                let item = items[index]
                 group.addTask {
-                    let url = try await uploadOne(image, index: index, into: folder)
+                    let url = try await uploadOne(item, into: folder)
                     return (index, url)
                 }
             }
@@ -76,20 +92,42 @@ enum PhotoUploadService {
         return results.compactMap { $0 }
     }
 
+    /// Convenience for unlabelled uploads.
+    static func upload(
+        images: [UIImage],
+        reservation: CustomerReservation,
+        progress: @escaping @MainActor (Double) -> Void
+    ) async throws -> [String] {
+        try await upload(
+            items: images.map { PhotoUploadItem(image: $0) },
+            reservation: reservation,
+            progress: progress
+        )
+    }
+
     private static func uploadOne(
-        _ image: UIImage,
-        index: Int,
+        _ item: PhotoUploadItem,
         into folder: StorageReference
     ) async throws -> String {
-        guard let data = compressed(image) else {
+        // Compress once, outside the retry, so a network retry does not pay
+        // for re-encoding the image.
+        guard let data = compressed(item.image) else {
             throw UploadError.encodingFailed
         }
-        let ref = folder.child("\(UUID().uuidString.uppercased()).jpg")
+        let unique = UUID().uuidString.uppercased()
+        let name = item.tag.map { "\($0)-\(unique).jpg" } ?? "\(unique).jpg"
+        let ref = folder.child(name)
         let metadata = StorageMetadata()
         metadata.contentType = "image/jpeg"
-        _ = try await ref.putDataAsync(data, metadata: metadata)
-        let url = try await ref.downloadURL()
-        return url.absoluteString
+
+        return try await GMRetry.run(
+            context: "photo upload",
+            logger: GMLog.upload
+        ) {
+            _ = try await ref.putDataAsync(data, metadata: metadata)
+            let url = try await ref.downloadURL()
+            return url.absoluteString
+        }
     }
 
     /// JPEG-encodes under the 10 MB storage rule limit, downscaling

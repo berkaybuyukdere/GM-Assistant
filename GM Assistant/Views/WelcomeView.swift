@@ -301,7 +301,7 @@ struct WelcomeView: View {
                 Spacer(minLength: 8)
 
                 VStack(alignment: .trailing, spacing: 4) {
-                    GMChip(text: promoCopied ? String(localized: "copied") : "ZURICH23")
+                    GMChip(text: promoCopied ? String(localized: "copied") : GMConfig.promoCode)
                     if !promoCopied {
                         Text("tap_to_copy")
                             .gmCaption(10.5, color: GMTheme.textFaint)
@@ -321,11 +321,11 @@ struct WelcomeView: View {
 
     private func copyPromoCode() {
         Haptics.light()
-        UIPasteboard.general.string = "ZURICH23"
+        UIPasteboard.general.string = GMConfig.promoCode
         withAnimation { promoCopied = true }
         Task {
             try? await Task.sleep(nanoseconds: 900_000_000)
-            if let url = URL(string: "https://greenmotion.com/de/locations/switzerland/zurich-airport") {
+            if let url = GMConfig.promoURL {
                 _ = await UIApplication.shared.open(url)
             }
             try? await Task.sleep(nanoseconds: 700_000_000)
@@ -366,7 +366,7 @@ struct WelcomeView: View {
     /// help even before their reservation resolves (which is where the
     /// franchise-specific roadside number normally comes from).
     private func callRoadside() {
-        guard let url = URL(string: "tel://+41765373407") else { return }
+        guard let url = URL(string: "tel://\(GMConfig.fallbackRoadsidePhone)") else { return }
         UIApplication.shared.open(url)
     }
 }
