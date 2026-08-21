@@ -1,0 +1,643 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA1000000000000000000012 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = AA1000000000000000000002 /* FirebaseAuth */; };
+		AA1000000000000000000013 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = AA1000000000000000000003 /* FirebaseFirestore */; };
+		AA1000000000000000000014 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = AA1000000000000000000004 /* FirebaseStorage */; };
+		AA1000000000000000000015 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = AA1000000000000000000005 /* FirebaseFunctions */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		405F12BF3009277E008CA4A5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 405F12A93009277B008CA4A5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 405F12B03009277B008CA4A5;
+			remoteInfo = "GM Assistant";
+		};
+		405F12C93009277E008CA4A5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 405F12A93009277B008CA4A5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 405F12B03009277B008CA4A5;
+			remoteInfo = "GM Assistant";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		405F12B13009277B008CA4A5 /* GM Assistant.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "GM Assistant.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		405F12BE3009277E008CA4A5 /* GM AssistantTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "GM AssistantTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		405F12C83009277E008CA4A5 /* GM AssistantUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "GM AssistantUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		405F12B33009277B008CA4A5 /* GM Assistant */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "GM Assistant";
+			sourceTree = "<group>";
+		};
+		405F12C13009277E008CA4A5 /* GM AssistantTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "GM AssistantTests";
+			sourceTree = "<group>";
+		};
+		405F12CB3009277E008CA4A5 /* GM AssistantUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "GM AssistantUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		405F12AE3009277B008CA4A5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA1000000000000000000012 /* FirebaseAuth in Frameworks */,
+				AA1000000000000000000013 /* FirebaseFirestore in Frameworks */,
+				AA1000000000000000000014 /* FirebaseStorage in Frameworks */,
+				AA1000000000000000000015 /* FirebaseFunctions in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		405F12BB3009277E008CA4A5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		405F12C53009277E008CA4A5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		405F12A83009277B008CA4A5 = {
+			isa = PBXGroup;
+			children = (
+				405F12B33009277B008CA4A5 /* GM Assistant */,
+				405F12C13009277E008CA4A5 /* GM AssistantTests */,
+				405F12CB3009277E008CA4A5 /* GM AssistantUITests */,
+				405F12B23009277B008CA4A5 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		405F12B23009277B008CA4A5 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				405F12B13009277B008CA4A5 /* GM Assistant.app */,
+				405F12BE3009277E008CA4A5 /* GM AssistantTests.xctest */,
+				405F12C83009277E008CA4A5 /* GM AssistantUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		405F12B03009277B008CA4A5 /* GM Assistant */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 405F12D23009277E008CA4A5 /* Build configuration list for PBXNativeTarget "GM Assistant" */;
+			buildPhases = (
+				405F12AD3009277B008CA4A5 /* Sources */,
+				405F12AE3009277B008CA4A5 /* Frameworks */,
+				405F12AF3009277B008CA4A5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				405F12B33009277B008CA4A5 /* GM Assistant */,
+			);
+			name = "GM Assistant";
+			packageProductDependencies = (
+				AA1000000000000000000002 /* FirebaseAuth */,
+				AA1000000000000000000003 /* FirebaseFirestore */,
+				AA1000000000000000000004 /* FirebaseStorage */,
+				AA1000000000000000000005 /* FirebaseFunctions */,
+			);
+			productName = "GM Assistant";
+			productReference = 405F12B13009277B008CA4A5 /* GM Assistant.app */;
+			productType = "com.apple.product-type.application";
+		};
+		405F12BD3009277E008CA4A5 /* GM AssistantTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 405F12D53009277E008CA4A5 /* Build configuration list for PBXNativeTarget "GM AssistantTests" */;
+			buildPhases = (
+				405F12BA3009277E008CA4A5 /* Sources */,
+				405F12BB3009277E008CA4A5 /* Frameworks */,
+				405F12BC3009277E008CA4A5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				405F12C03009277E008CA4A5 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				405F12C13009277E008CA4A5 /* GM AssistantTests */,
+			);
+			name = "GM AssistantTests";
+			packageProductDependencies = (
+			);
+			productName = "GM AssistantTests";
+			productReference = 405F12BE3009277E008CA4A5 /* GM AssistantTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		405F12C73009277E008CA4A5 /* GM AssistantUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 405F12D83009277E008CA4A5 /* Build configuration list for PBXNativeTarget "GM AssistantUITests" */;
+			buildPhases = (
+				405F12C43009277E008CA4A5 /* Sources */,
+				405F12C53009277E008CA4A5 /* Frameworks */,
+				405F12C63009277E008CA4A5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				405F12CA3009277E008CA4A5 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				405F12CB3009277E008CA4A5 /* GM AssistantUITests */,
+			);
+			name = "GM AssistantUITests";
+			packageProductDependencies = (
+			);
+			productName = "GM AssistantUITests";
+			productReference = 405F12C83009277E008CA4A5 /* GM AssistantUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		405F12A93009277B008CA4A5 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					405F12B03009277B008CA4A5 = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
+					405F12BD3009277E008CA4A5 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 405F12B03009277B008CA4A5;
+					};
+					405F12C73009277E008CA4A5 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 405F12B03009277B008CA4A5;
+					};
+				};
+			};
+			buildConfigurationList = 405F12AC3009277B008CA4A5 /* Build configuration list for PBXProject "GM Assistant" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				de,
+				tr,
+			);
+			mainGroup = 405F12A83009277B008CA4A5;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				AA1000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 405F12B23009277B008CA4A5 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				405F12B03009277B008CA4A5 /* GM Assistant */,
+				405F12BD3009277E008CA4A5 /* GM AssistantTests */,
+				405F12C73009277E008CA4A5 /* GM AssistantUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		405F12AF3009277B008CA4A5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		405F12BC3009277E008CA4A5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		405F12C63009277E008CA4A5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		405F12AD3009277B008CA4A5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		405F12BA3009277E008CA4A5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		405F12C43009277E008CA4A5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		405F12C03009277E008CA4A5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 405F12B03009277B008CA4A5 /* GM Assistant */;
+			targetProxy = 405F12BF3009277E008CA4A5 /* PBXContainerItemProxy */;
+		};
+		405F12CA3009277E008CA4A5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 405F12B03009277B008CA4A5 /* GM Assistant */;
+			targetProxy = 405F12C93009277E008CA4A5 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		405F12D03009277E008CA4A5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = CJGGJ5T5GY;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		405F12D13009277E008CA4A5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = CJGGJ5T5GY;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		405F12D33009277E008CA4A5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CJGGJ5T5GY;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Take photos of your rental vehicle at check-out, return, or to document damage.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Show how far away your shuttle is and notify you when it arrives.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Select photos of your rental vehicle to upload.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.GM-Assistant";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		405F12D43009277E008CA4A5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CJGGJ5T5GY;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Take photos of your rental vehicle at check-out, return, or to document damage.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Show how far away your shuttle is and notify you when it arrives.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Select photos of your rental vehicle to upload.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.GM-Assistant";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		405F12D63009277E008CA4A5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CJGGJ5T5GY;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.GM-AssistantTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GM Assistant.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GM Assistant";
+			};
+			name = Debug;
+		};
+		405F12D73009277E008CA4A5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CJGGJ5T5GY;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.GM-AssistantTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GM Assistant.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GM Assistant";
+			};
+			name = Release;
+		};
+		405F12D93009277E008CA4A5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CJGGJ5T5GY;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.GM-AssistantUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "GM Assistant";
+			};
+			name = Debug;
+		};
+		405F12DA3009277E008CA4A5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CJGGJ5T5GY;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.GM-AssistantUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "GM Assistant";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		405F12AC3009277B008CA4A5 /* Build configuration list for PBXProject "GM Assistant" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				405F12D03009277E008CA4A5 /* Debug */,
+				405F12D13009277E008CA4A5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		405F12D23009277E008CA4A5 /* Build configuration list for PBXNativeTarget "GM Assistant" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				405F12D33009277E008CA4A5 /* Debug */,
+				405F12D43009277E008CA4A5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		405F12D53009277E008CA4A5 /* Build configuration list for PBXNativeTarget "GM AssistantTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				405F12D63009277E008CA4A5 /* Debug */,
+				405F12D73009277E008CA4A5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		405F12D83009277E008CA4A5 /* Build configuration list for PBXNativeTarget "GM AssistantUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				405F12D93009277E008CA4A5 /* Debug */,
+				405F12DA3009277E008CA4A5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AA1000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.4.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AA1000000000000000000002 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA1000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		AA1000000000000000000003 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA1000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		AA1000000000000000000004 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA1000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+		AA1000000000000000000005 /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA1000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 405F12A93009277B008CA4A5 /* Project object */;
+}
